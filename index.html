@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="tr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Spotify Music Downloader</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      :root {
+        --bg-primary: #ffffff;
+        --bg-secondary: #f5f5f5;
+        --text-primary: #1a1a1a;
+        --text-secondary: #666666;
+        --accent: #1db954;
+        --accent-hover: #1ed760;
+        --border: #e0e0e0;
+        --shadow: rgba(0, 0, 0, 0.1);
+        --progress-bg: #e0e0e0;
+        --card-bg: #ffffff;
+      }
+
+      [data-theme="dark"] {
+        --bg-primary: #121212;
+        --bg-secondary: #1e1e1e;
+        --text-primary: #ffffff;
+        --text-secondary: #b3b3b3;
+        --accent: #1db954;
+        --accent-hover: #1ed760;
+        --border: #333333;
+        --shadow: rgba(0, 0, 0, 0.3);
+        --progress-bg: #2a2a2a;
+        --card-bg: #1e1e1e;
+      }
+
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background: var(--bg-primary);
+        color: var(--text-primary);
+        transition: background 0.3s ease, color 0.3s ease;
+        overflow: hidden;
+        height: 100vh;
+      }
+
+      .app-container {
+        display: flex;
+        flex-direction: column;
+        height: 100vh;
+      }
+
+      .header {
+        background: var(--card-bg);
+        border-bottom: 1px solid var(--border);
+        padding: 20px 30px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        box-shadow: 0 2px 10px var(--shadow);
+        transition: background 0.3s ease;
+      }
+
+      .header-title {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+
+      .logo {
+        width: 36px;
+        height: 36px;
+        background: linear-gradient(135deg, var(--accent), #1ed760);
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 20px;
+        animation: pulse 2s ease-in-out infinite;
+      }
+
+      @keyframes pulse {
+        0%,
+        100% {
+          transform: scale(1);
+        }
+        50% {
+          transform: scale(1.05);
+        }
+      }
+
+      h1 {
+        font-size: 24px;
+        font-weight: 600;
+        background: linear-gradient(135deg, var(--accent), #1ed760);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+
+      .header-actions {
+        display: flex;
+        align-items: center;
+      }
+
+      .theme-toggle {
+        background: var(--bg-secondary);
+        border: 1px solid var(--border);
+        border-radius: 20px;
+        padding: 8px 16px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.3s ease;
+        font-size: 14px;
+        color: var(--text-primary);
+      }
+
+      .theme-toggle:hover {
+        background: var(--border);
+        transform: translateY(-2px);
+      }
+
+      #settingsBtn {
+        background: linear-gradient(135deg, var(--accent), #1ed760);
+        color: white;
+        border: none;
+      }
+
+      #settingsBtn:hover {
+        background: linear-gradient(135deg, #1ed760, var(--accent));
+        box-shadow: 0 4px 12px rgba(29, 185, 84, 0.3);
+      }
+
+      .main-content {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 40px;
+        overflow-y: auto;
+      }
+
+      .download-card {
+        background: var(--card-bg);
+        border-radius: 20px;
+        padding: 50px;
+        box-shadow: 0 10px 40px var(--shadow);
+        max-width: 600px;
+        width: 100%;
+        transition: all 0.3s ease;
+      }
+
+      .input-group {
+        margin-bottom: 30px;
+      }
+
+      .input-label {
+        display: block;
+        margin-bottom: 12px;
+        font-size: 14px;
+        font-weight: 500;
+        color: var(--text-secondary);
+      }
+
+      .input-wrapper {
+        position: relative;
+      }
+
+      .input-field {
+        width: 100%;
+        padding: 16px 20px;
+        border: 2px solid var(--border);
+        border-radius: 12px;
+        font-size: 16px;
+        background: var(--bg-secondary);
+        color: var(--text-primary);
+        transition: all 0.3s ease;
+        outline: none;
+      }
+
+      .input-field:focus {
+        border-color: var(--accent);
+        background: var(--bg-primary);
+        box-shadow: 0 0 0 4px rgba(29, 185, 84, 0.1);
+      }
+
+      .input-field::placeholder {
+        color: var(--text-secondary);
+      }
+
+      .download-button {
+        width: 100%;
+        padding: 18px;
+        background: linear-gradient(135deg, var(--accent), #1ed760);
+        color: white;
+        border: none;
+        border-radius: 12px;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .download-button::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(
+          90deg,
+          transparent,
+          rgba(255, 255, 255, 0.2),
+          transparent
+        );
+        transition: left 0.5s ease;
+      }
+
+      .download-button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 25px rgba(29, 185, 84, 0.3);
+      }
+
+      .download-button:hover::before {
+        left: 100%;
+      }
+
+      .download-button:active {
+        transform: translateY(0);
+      }
+
+      .download-button:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        transform: none;
+      }
+
+      .progress-container {
+        margin-top: 30px;
+        opacity: 0;
+        transform: translateY(10px);
+        transition: all 0.3s ease;
+      }
+
+      .progress-container.active {
+        opacity: 1;
+        transform: translateY(0);
+      }
+
+      .progress-label {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 12px;
+        font-size: 14px;
+        color: var(--text-secondary);
+      }
+
+      .progress-bar {
+        width: 100%;
+        height: 8px;
+        background: var(--progress-bg);
+        border-radius: 10px;
+        overflow: hidden;
+        position: relative;
+      }
+
+      .progress-fill {
+        height: 100%;
+        background: linear-gradient(90deg, var(--accent), #1ed760);
+        border-radius: 10px;
+        transition: width 0.3s ease;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .progress-fill::after {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(
+          90deg,
+          transparent,
+          rgba(255, 255, 255, 0.3),
+          transparent
+        );
+        animation: shimmer 2s infinite;
+      }
+
+      @keyframes shimmer {
+        0% {
+          transform: translateX(-100%);
+        }
+        100% {
+          transform: translateX(100%);
+        }
+      }
+
+      .status-message {
+        margin-top: 15px;
+        padding: 12px 16px;
+        border-radius: 8px;
+        font-size: 14px;
+        text-align: center;
+        opacity: 0;
+        transform: translateY(-10px);
+        transition: all 0.3s ease;
+      }
+
+      .status-message.active {
+        opacity: 1;
+        transform: translateY(0);
+      }
+
+      .status-message.success {
+        background: rgba(29, 185, 84, 0.1);
+        color: var(--accent);
+        border: 1px solid var(--accent);
+      }
+
+      .status-message.error {
+        background: rgba(255, 59, 48, 0.1);
+        color: #ff3b30;
+        border: 1px solid #ff3b30;
+      }
+
+      .status-message.info {
+        background: rgba(0, 122, 255, 0.1);
+        color: #007aff;
+        border: 1px solid #007aff;
+      }
+
+      @media (max-width: 768px) {
+        .header {
+          padding: 15px 20px;
+        }
+
+        .header-title {
+          gap: 8px;
+        }
+
+        .logo {
+          width: 32px;
+          height: 32px;
+          font-size: 18px;
+        }
+
+        h1 {
+          font-size: 18px;
+        }
+
+        .header-actions {
+          gap: 8px;
+        }
+
+        .theme-toggle {
+          padding: 6px 12px;
+          font-size: 13px;
+        }
+
+        .theme-toggle span:last-child {
+          display: none;
+        }
+
+        .download-card {
+          padding: 30px 25px;
+        }
+
+        .main-content {
+          padding: 20px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app-container">
+      <header class="header">
+        <div class="header-title">
+          <div class="logo">🎵</div>
+          <h1>SMD-GUI</h1>
+        </div>
+        <div class="header-actions">
+          <button
+            class="theme-toggle"
+            id="settingsBtn"
+            style="margin-right: 10px"
+          >
+            <span>⚙️</span>
+            <span>Settings</span>
+          </button>
+          <button class="theme-toggle" id="themeToggle">
+            <span id="themeIcon">🌙</span>
+            <span id="themeText">Dark Theme</span>
+          </button>
+        </div>
+      </header>
+
+      <main class="main-content">
+        <div class="download-card">
+          <div class="input-group">
+            <label class="input-label" for="spotifyUrl"
+              >Spotify URL (Song, Playlist, Artist)</label
+            >
+            <div class="input-wrapper">
+              <input
+                type="text"
+                id="spotifyUrl"
+                class="input-field"
+                placeholder="https://open.spotify.com/track/..."
+              />
+            </div>
+          </div>
+
+          <button class="download-button" id="downloadBtn">
+            <span>Download</span>
+          </button>
+
+          <div class="progress-container" id="progressContainer">
+            <div class="progress-label">
+              <span id="progressText">İndiriliyor...</span>
+              <span id="progressPercent">0%</span>
+            </div>
+            <div class="progress-bar">
+              <div
+                class="progress-fill"
+                id="progressFill"
+                style="width: 0%"
+              ></div>
+            </div>
+          </div>
+
+          <div class="status-message" id="statusMessage"></div>
+        </div>
+      </main>
+    </div>
+
+    <script src="./renderer.js"></script>
+  </body>
+</html>

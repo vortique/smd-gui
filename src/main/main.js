@@ -47,6 +47,8 @@ const closeSettingsWindow = () => {
   optionsWindow.close();
 };
 
+const wait = (ms) => new Promise((res) => setTimeout(res, ms));
+
 const saveOptions = async (clientId, clientSecret) => {
   try {
     await fsPromises.mkdir(path.dirname(configPath), { recursive: true });
@@ -147,7 +149,7 @@ const saveAccessToken = async (accessToken, expiringDate) => {
   }
 };
 
-export const getAccessToken = async () => {
+const getAccessToken = async () => {
   try {
     const data = await fsPromises.readFile(configPath, { encoding: "utf8" });
     let jsonData = JSON.parse(data);
@@ -175,6 +177,7 @@ export const getAccessToken = async () => {
       console.log("Access token expired. Requesting new...");
 
       const status = await requestAccessToken();
+      await wait(2000)
       if (status.success) {
         const updated = await fsPromises.readFile(configPath, {
           encoding: "utf8",
@@ -202,13 +205,17 @@ const fetchUrl = (url) => {
 
 const getAlbumInfo = async (url) => {
   if (url === "" || url === null) {
-    return
+    return;
   }
-  
+
   try {
     const id = url.substring(url.lastIndexOf("/") + 1);
 
     const accessToken = await getAccessToken();
+
+    if (accessToken === null) {
+      return { type: "err" };
+    }
 
     const headers = {
       Authorization: `Bearer ${accessToken}`,
@@ -245,7 +252,7 @@ const getAlbumInfo = async (url) => {
 
 const getSpotifyInfo = async (url) => {
   if (url === "" || url === null) {
-    return
+    return;
   }
 
   try {
@@ -278,11 +285,11 @@ const getSpotifyInfo = async (url) => {
         const data = {
           type: "track",
           image: response.data["album"]["images"][0]["url"] || "",
-          name: response.data["album"]["name"] || "",
+          name: response.data["album"]["name"] || "No name",
           artist: track_artists,
           album: albumInfo.name,
           duration: response.data["duration_ms"] / 60000,
-          releaseDate: response.data["album"]["release_date"] || "",
+          releaseDate: response.data["album"]["release_date"] || "No release date",
         };
 
         return data;
@@ -293,6 +300,56 @@ const getSpotifyInfo = async (url) => {
       apiUrl = `https://api.spotify.com/v1/artists/${id}`;
     } else if (url.includes("playlist")) {
       apiUrl = `https://api.spotify.com/v1/playlists/${id}`;
+
+      const accessToken = await getAccessToken();
+
+      const headers = {
+        Authorization: `Bearer ${accessToken}`,
+      };
+
+      const response = await axios.get(apiUrl, { headers });
+
+      if (response.status === 200) {
+        let tracks = [];
+
+        for (const trackInfos of response.data["tracks"]["items"]) {
+          if (tracks.length === 20) {
+            if (response.data["tracks"]["items"].length > tracks.length) {
+              tracks.push({ name: "There is more...", artist: "SMD-GUI" });
+            }
+            break;
+          }
+
+          const track = trackInfos["track"]["album"];
+
+          let track_artists = "";
+
+          for (const artist of track["artists"]) {
+            track_artists += artist["name"] + ", ";
+          }
+
+          const trackData = {
+            name: track["name"],
+            artist: track_artists,
+          };
+
+          tracks.push(trackData);
+        }
+
+        const data = {
+          type: "playlist",
+          image: response.data["images"][0]["url"] || "",
+          name: response.data["name"] || "No name",
+          owner: response.data["owner"]["display_name"] || "No owner",
+          totalTracks: response.data["tracks"]["total"] || 0,
+          description: response.data["description"] || "No description",
+          tracks: tracks,
+        };
+
+        return data;
+      } else {
+        return { type: "err" };
+      }
     } else if (url.includes("album")) {
     } else {
       return { type: "err" };

@@ -146,12 +146,12 @@ function showPlaylistInfo(data) {
     </div>
     <div class="info-section">
       <div class="info-detail">
-        <span class="info-detail-label">Total Tracks</span>
-        <span class="info-detail-value">${data.totalTracks}</span>
+        <span class="info-detail-label">Description</span>
+        <span class="info-detail-value">${data.description}</span>
       </div>
       <div class="info-detail">
-        <span class="info-detail-label">Total Duration</span>
-        <span class="info-detail-value">${data.duration}</span>
+        <span class="info-detail-label">Total Tracks</span>
+        <span class="info-detail-value">${data.totalTracks}</span>
       </div>
     </div>
     <div class="info-section">
@@ -163,6 +163,99 @@ function showPlaylistInfo(data) {
   
   document.getElementById('infoPanelContent').innerHTML = content;
   openInfoPanel();
+}
+
+function showArtistInfo(data) {
+  const topTracksHtml = data.topTracks ? data.topTracks.map((track, i) => `
+    <div class="info-track-item">
+      <span class="info-track-number">${i + 1}</span>
+      <div class="info-track-details">
+        <div class="info-track-name">${track.name}</div>
+        <div class="info-track-artist">${track.album || 'Single'}</div>
+      </div>
+    </div>
+  `).join('') : '';
+
+  const genresHtml = data.genres && data.genres.length > 0 
+    ? data.genres.map(genre => `
+        <span style="
+          display: inline-block;
+          padding: 6px 12px;
+          background: var(--bg-secondary);
+          border-radius: 20px;
+          font-size: 12px;
+          margin: 4px;
+          color: var(--text-primary);
+        ">${genre}</span>
+      `).join('')
+    : '<span style="color: var(--text-secondary); font-size: 14px;">No genre information</span>';
+
+  const content = `
+    ${data.image 
+      ? `<img src="${data.image}" class="info-cover" alt="Artist Cover">`
+      : `<div class="info-cover-placeholder">🎤</div>`
+    }
+    
+    <div class="info-section">
+      <span class="info-type">Artist</span>
+      <h3 class="info-title">${data.name}</h3>
+      ${data.followers ? `<p class="info-subtitle">${formatNumber(data.followers)} followers</p>` : ''}
+    </div>
+
+    <div class="info-section">
+      ${data.popularity ? `
+        <div class="info-detail">
+          <span class="info-detail-label">Popularity</span>
+          <span class="info-detail-value">${data.popularity}/100</span>
+        </div>
+      ` : ''}
+      
+      ${data.totalTracks ? `
+        <div class="info-detail">
+          <span class="info-detail-label">Total Tracks</span>
+          <span class="info-detail-value">${data.totalTracks}</span>
+        </div>
+      ` : ''}
+      
+      ${data.totalAlbums ? `
+        <div class="info-detail">
+          <span class="info-detail-label">Total Albums</span>
+          <span class="info-detail-value">${data.totalAlbums}</span>
+        </div>
+      ` : ''}
+    </div>
+
+    ${data.genres && data.genres.length > 0 ? `
+      <div class="info-section">
+        <div class="info-detail-label" style="margin-bottom: 12px;">Genres</div>
+        <div style="display: flex; flex-wrap: wrap; gap: 4px;">
+          ${genresHtml}
+        </div>
+      </div>
+    ` : ''}
+
+    ${topTracksHtml ? `
+      <div class="info-section">
+        <div class="info-detail-label" style="margin-bottom: 12px;">Top Tracks</div>
+        <div class="info-tracks">
+          ${topTracksHtml}
+        </div>
+      </div>
+    ` : ''}
+  `;
+  
+  document.getElementById('infoPanelContent').innerHTML = content;
+  openInfoPanel();
+}
+
+// Helper
+function formatNumber(num) {
+  if (num >= 1000000) {
+    return (num / 1000000).toFixed(1) + 'M';
+  } else if (num >= 1000) {
+    return (num / 1000).toFixed(1) + 'K';
+  }
+  return num.toString();
 }
 
 // Show loading
@@ -201,6 +294,10 @@ document.getElementById('spotifyUrl').addEventListener('input', async (e) => {
       return
     } else if (data.type === "track") {
       showTrackInfo(data);
+    } else if (data.type === "artist") {
+      showArtistInfo(data)
+    } else if (data.type === "playlist") {
+      showPlaylistInfo(data)
     } else {
       console.error("hata");
     }

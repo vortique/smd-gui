@@ -8,4 +8,5 @@ contextBridge.exposeInMainWorld("electronAPI", {
   getApiCredentials: async () => {
     return await ipcRenderer.invoke("get-api-credentials")
   },
+  downloadSong: async (url) => await ipcRenderer.invoke("download-song", url),
 });

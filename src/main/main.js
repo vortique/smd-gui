@@ -3,11 +3,13 @@ import { app, BrowserWindow, ipcMain, Menu } from "electron";
 import path from "path";
 import fsPromises from "fs/promises";
 import axios from "axios";
-import ytdl from "ytdl-core";
 
 import { fileURLToPath } from "url";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+
+import { isMismatchedSongName } from "./utils/query-filter.js";
+import { updateYtDlp } from "./yt-dlp/installers.js";
 
 let mainWindow = null;
 let optionsWindow = null;
@@ -252,7 +254,7 @@ const getAlbumInfo = async (url) => {
 
 const getArtistsTopTracks = async (id) => {
   if (id === "" || id === null) {
-    return { type: "err" };
+    return [];
   }
 
   try {
@@ -261,7 +263,7 @@ const getArtistsTopTracks = async (id) => {
     const accessToken = await getAccessToken();
 
     if (accessToken === null) {
-      return { type: "err" };
+      return [];
     }
 
     const headers = {
@@ -499,6 +501,19 @@ const getSpotifyInfo = async (url) => {
   }
 };
 
+const downloadSongFromUrl = async (url) => {
+  try {
+    const updateResult = await updateYtDlp();
+
+    if (updateResult.success === false) {
+      return { success: false };
+    }
+  } catch (err) {
+    console.error(err);
+    return { success: false };
+  }
+}
+
 app.whenReady().then(async () => {
   ipcMain.handle("open-settings", () => createOptionsWindow());
   ipcMain.handle("close-settings-window", () => closeSettingsWindow());
@@ -517,6 +532,7 @@ app.whenReady().then(async () => {
     "get-spotify-info",
     async (_event, url) => await getSpotifyInfo(url)
   );
+  ipcMain.handle("download-song", async (_event, url) => await downloadSongFromUrl(url))
 
   configPath = path.join(app.getPath("userData"), "config.json");
 

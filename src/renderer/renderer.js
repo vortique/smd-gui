@@ -58,6 +58,8 @@ const progressText = document.getElementById("progressText");
 const statusMessage = document.getElementById("statusMessage");
 const spotifyUrl = document.getElementById("spotifyUrl");
 
+let url = "";
+
 function showStatusWithTimeout(message, type) {
   statusMessage.textContent = message;
   statusMessage.className = `status-message active ${type}`;
@@ -78,11 +80,21 @@ function updateProgress(percent, text = "Downloading...") {
   progressText.textContent = text;
 }
 
-// TODO : URL girilince şarkı, playlist veya artist bilgilerini göstert.
+downloadBtn.addEventListener("click", async () => {
+  if (!url || !url.includes("spotify.com")) {
+    showStatusWithTimeout("Please enter a Spotify URL!", "error");
+    return;
+  }
 
-// downloadBtn.addEventListener("click", () => {
-//   const url_
-// });
+  downloadBtn.disabled = true;
+  progressContainer.classList.add("active");
+  statusMessage.classList.remove("active");
+  updateProgress(0, "Starting...");
+
+  const result = await window.electronAPI.downloadSong(url);
+
+  console.log(result);
+})
 
 function openInfoPanel() {
   document.getElementById('infoPanel').classList.add('active');
@@ -258,7 +270,7 @@ function showInfoLoading() {
 
 // Open when URL entered
 document.getElementById('spotifyUrl').addEventListener('input', async (e) => {
-  showInfoLoading();
+  url = e.target.value.trim();
 
   if (window.electronAPI.getApiCredentials() === null) {
     showStatusWithTimeout("Please enter your CLIENT ID and CLIENT SECRET from Settings tab.", "error");
@@ -266,10 +278,9 @@ document.getElementById('spotifyUrl').addEventListener('input', async (e) => {
     return;
   }
 
-  const url = e.target.value.trim();
-
   if (url === "") {
     closeInfoPanel();
+    return;
   }
 
   if (url.includes('spotify.com')) {

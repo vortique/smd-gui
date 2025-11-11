@@ -12,11 +12,11 @@ const createWindow = () => {
     width: 1150,
     height: 800,
     webPreferences: {
-      preload: path.join(__dirname, "preload-main.js"),
+      preload: path.join(__dirname, "../renderer/preload/preload-main.js"),
     },
   });
 
-  win.loadFile("index.html");
+  win.loadFile("../html/index.html");
 
   mainWindow = win;
 };
@@ -29,11 +29,11 @@ const createOptionsWindow = () => {
     modal: true,
     autoHideMenuBar: true,
     webPreferences: {
-      preload: path.join(__dirname, "preload-options.js"),
+      preload: path.join(__dirname, "../renderer/preload/preload-options.js"),
     },
   });
 
-  optWin.loadFile("options-index.html");
+  optWin.loadFile("../html/options-index.html");
 
   optionsWindow = optWin;
 };

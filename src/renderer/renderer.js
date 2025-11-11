@@ -6,18 +6,17 @@ const html = document.documentElement;
 const settingsBtn = document.getElementById("settingsBtn");
 
 settingsBtn.addEventListener("click", () => {
-  // Electron IPC ile ayarlar penceresini aç
   window.electronAPI.openSettings();
 });
 
-// Sistem temasını kontrol et
+// Look for system theme
 function getSystemTheme() {
   return window.matchMedia("(prefers-color-scheme: dark)").matches
     ? "dark"
     : "light";
 }
 
-// Temayı uygula
+// Apply theme
 function setTheme(theme) {
   html.setAttribute("data-theme", theme);
   localStorage.setItem("theme", theme);
@@ -31,17 +30,17 @@ function setTheme(theme) {
   }
 }
 
-// Kaydedilmiş temayı kontrol et veya sistem temasını kullan
+// Look for saved theme and change to it
 const savedTheme = localStorage.getItem("theme") || getSystemTheme();
 setTheme(savedTheme);
 
-// Tema değiştir
+// Change themes
 themeToggle.addEventListener("click", () => {
   const currentTheme = html.getAttribute("data-theme");
   setTheme(currentTheme === "dark" ? "light" : "dark");
 });
 
-// Sistem teması değişikliğini dinle
+// Listen system theme changes
 window
   .matchMedia("(prefers-color-scheme: dark)")
   .addEventListener("change", (e) => {
@@ -50,7 +49,7 @@ window
     }
   });
 
-// İndirme fonksiyonalitesi (demo)
+
 const downloadBtn = document.getElementById("downloadBtn");
 const progressContainer = document.getElementById("progressContainer");
 const progressFill = document.getElementById("progressFill");

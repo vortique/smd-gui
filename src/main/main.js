@@ -16,7 +16,7 @@ const createWindow = () => {
     },
   });
 
-  win.loadFile("../html/index.html");
+  win.loadFile(path.join(__dirname, "../html/index.html"));
 
   mainWindow = win;
 };
@@ -33,7 +33,7 @@ const createOptionsWindow = () => {
     },
   });
 
-  optWin.loadFile("../html/options-index.html");
+  optWin.loadFile(path.join(__dirname, "../html/options-index.html"));
 
   optionsWindow = optWin;
 };

@@ -1,4 +1,3 @@
-// Tema yönetimi
 function getSystemTheme() {
   return window.matchMedia("(prefers-color-scheme: dark)").matches
     ? "dark"
@@ -9,11 +8,11 @@ function setTheme(theme) {
   document.documentElement.setAttribute("data-theme", theme);
 }
 
-// Kaydedilmiş temayı kontrol et veya sistem temasını kullan
+// Look for saved theme and change to it
 const savedTheme = localStorage.getItem("theme") || getSystemTheme();
 setTheme(savedTheme);
 
-// Sistem teması değişikliğini dinle
+// Listen system theme changes
 window
   .matchMedia("(prefers-color-scheme: dark)")
   .addEventListener("change", (e) => {
@@ -22,7 +21,7 @@ window
     }
   });
 
-// Form elemanları
+// Form elements
 const settingsForm = document.getElementById("settingsForm");
 const clientIdInput = document.getElementById("clientId");
 const clientSecretInput = document.getElementById("clientSecret");
@@ -31,14 +30,14 @@ const saveBtn = document.getElementById("saveBtn");
 const cancelBtn = document.getElementById("cancelBtn");
 const statusMessage = document.getElementById("statusMessage");
 
-// Şifre göster/gizle
+// Show/Hide password
 toggleSecretBtn.addEventListener("click", () => {
   const type = clientSecretInput.type === "password" ? "text" : "password";
   clientSecretInput.type = type;
   toggleSecretBtn.textContent = type === "password" ? "👁️" : "🙈";
 });
 
-// Durum mesajı göster
+// Show status message
 function showStatus(message, type) {
   statusMessage.textContent = message;
   statusMessage.className = `status-message active ${type}`;
@@ -48,14 +47,14 @@ function showStatus(message, type) {
   }, 4000);
 }
 
-// Form gönderimi
+// Form submitting
 settingsForm.addEventListener("submit", async (e) => {
   e.preventDefault();
 
   const clientId = clientIdInput.value.trim();
   const clientSecret = clientSecretInput.value.trim();
 
-  // Validasyon
+  // Validation
   if (!clientId || !clientSecret) {
     showStatus("Please enter every input field!", "error");
     return;
@@ -66,7 +65,7 @@ settingsForm.addEventListener("submit", async (e) => {
     return;
   }
 
-  // Kaydetme işlemi
+  // Saving
   saveBtn.disabled = true;
   saveBtn.textContent = "⏳ Saving...";
 
@@ -80,7 +79,7 @@ settingsForm.addEventListener("submit", async (e) => {
       return
     }
 
-    // 1.5 saniye sonra pencereyi kapat
+    // Close window after 1.5 seconds
     setTimeout(() => {
       window.electronAPI.closeSettingsWindow();
       console.log("Options set, window is closing...");
@@ -94,13 +93,13 @@ settingsForm.addEventListener("submit", async (e) => {
   }
 });
 
-// İptal butonu
+// Cancel button
 cancelBtn.addEventListener("click", () => {
   window.electronAPI.closeSettingsWindow();
   console.log("Options window will close...");
 });
 
-// Kaydedilmiş değerleri yükle (varsa)
+// Load saved settings (if there)
 window.addEventListener("DOMContentLoaded", async () => {
   try {
     const credentials = await window.electronAPI.getApiCredentials();
@@ -113,7 +112,7 @@ window.addEventListener("DOMContentLoaded", async () => {
   }
 });
 
-// Enter tuşu ile kaydet
+// Save with enter key
 clientSecretInput.addEventListener("keypress", (e) => {
   if (e.key === "Enter") {
     settingsForm.dispatchEvent(new Event("submit"));

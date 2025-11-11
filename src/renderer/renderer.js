@@ -84,6 +84,109 @@ function updateProgress(percent, text = "Downloading...") {
 //   const url_
 // });
 
+function openInfoPanel() {
+  document.getElementById('infoPanel').classList.add('active');
+}
+
+// Close info panel
+function closeInfoPanel() {
+  document.getElementById('infoPanel').classList.remove('active');
+}
+
+// Close button
+document.getElementById('closeInfoBtn').addEventListener('click', closeInfoPanel);
+
+// Show track info
+function showTrackInfo(data) {
+  const content = `
+    <img src="${data.image}" class="info-cover" alt="Cover">
+    <div class="info-section">
+      <span class="info-type">Track</span>
+      <h3 class="info-title">${data.name}</h3>
+      <p class="info-subtitle">${data.artist}</p>
+    </div>
+    <div class="info-section">
+      <div class="info-detail">
+        <span class="info-detail-label">Album</span>
+        <span class="info-detail-value">${data.album}</span>
+      </div>
+      <div class="info-detail">
+        <span class="info-detail-label">Duration</span>
+        <span class="info-detail-value">${data.duration}</span>
+      </div>
+      <div class="info-detail">
+        <span class="info-detail-label">Release Date</span>
+        <span class="info-detail-value">${data.releaseDate}</span>
+      </div>
+    </div>
+  `;
+  
+  document.getElementById('infoPanelContent').innerHTML = content;
+  openInfoPanel();
+}
+
+// Show playlist info
+function showPlaylistInfo(data) {
+  const tracksHtml = data.tracks.map((track, i) => `
+    <div class="info-track-item">
+      <span class="info-track-number">${i + 1}</span>
+      <div class="info-track-details">
+        <div class="info-track-name">${track.name}</div>
+        <div class="info-track-artist">${track.artist}</div>
+      </div>
+    </div>
+  `).join('');
+  
+  const content = `
+    <img src="${data.image}" class="info-cover" alt="Cover">
+    <div class="info-section">
+      <span class="info-type">Playlist</span>
+      <h3 class="info-title">${data.name}</h3>
+      <p class="info-subtitle">by ${data.owner}</p>
+    </div>
+    <div class="info-section">
+      <div class="info-detail">
+        <span class="info-detail-label">Total Tracks</span>
+        <span class="info-detail-value">${data.totalTracks}</span>
+      </div>
+      <div class="info-detail">
+        <span class="info-detail-label">Total Duration</span>
+        <span class="info-detail-value">${data.duration}</span>
+      </div>
+    </div>
+    <div class="info-section">
+      <div class="info-tracks">
+        ${tracksHtml}
+      </div>
+    </div>
+  `;
+  
+  document.getElementById('infoPanelContent').innerHTML = content;
+  openInfoPanel();
+}
+
+// Show loading
+function showInfoLoading() {
+  const content = `
+    <div class="loading-spinner">
+      <div class="spinner"></div>
+      <p class="loading-text">Loading information...</p>
+    </div>
+  `;
+  document.getElementById('infoPanelContent').innerHTML = content;
+  openInfoPanel();
+}
+
+// Open when URL entered
+document.getElementById('spotifyUrl').addEventListener('input', (e) => {
+  const url = e.target.value.trim();
+  if (url.includes('spotify.com')) {
+    showInfoLoading();
+    const id = fetch_url(url)
+    window.electronAPI.getSpotifyInfo(id).then(showTrackInfo/showPlaylistInfo);
+  }
+});
+
 function fetch_url(url) {
   fetched_url = url.substring(url.lastIndexOf("/") + 1, url.indexOf("?"));
 

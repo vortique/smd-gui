@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="tr">
+<html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -138,9 +138,17 @@
       .main-content {
         flex: 1;
         display: flex;
+        padding: 40px;
+        overflow: hidden;
+        gap: 20px;
+        position: relative;
+      }
+
+      .content-wrapper {
+        flex: 1;
+        display: flex;
         align-items: center;
         justify-content: center;
-        padding: 40px;
         overflow-y: auto;
       }
 
@@ -339,6 +347,218 @@
         border: 1px solid #007aff;
       }
 
+      /* Info Panel Styles */
+      .info-panel {
+        position: fixed;
+        right: 0;
+        top: 81px;
+        bottom: 0;
+        width: 400px;
+        background: var(--card-bg);
+        box-shadow: -5px 0 20px var(--shadow);
+        transform: translateX(100%);
+        transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        z-index: 1000;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .info-panel.active {
+        transform: translateX(0);
+      }
+
+      .info-panel-header {
+        padding: 20px;
+        border-bottom: 1px solid var(--border);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .info-panel-title {
+        font-size: 18px;
+        font-weight: 600;
+        color: var(--text-primary);
+      }
+
+      .close-info-btn {
+        background: var(--bg-secondary);
+        border: none;
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 20px;
+        color: var(--text-secondary);
+        transition: all 0.3s ease;
+      }
+
+      .close-info-btn:hover {
+        background: var(--border);
+        color: var(--text-primary);
+        transform: rotate(90deg);
+      }
+
+      .info-panel-content {
+        flex: 1;
+        overflow-y: auto;
+        padding: 20px;
+      }
+
+      .info-cover {
+        width: 100%;
+        aspect-ratio: 1;
+        border-radius: 12px;
+        object-fit: cover;
+        margin-bottom: 20px;
+        box-shadow: 0 8px 24px var(--shadow);
+      }
+
+      .info-cover-placeholder {
+        width: 100%;
+        aspect-ratio: 1;
+        border-radius: 12px;
+        background: linear-gradient(135deg, var(--accent), #1ed760);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 80px;
+        margin-bottom: 20px;
+      }
+
+      .info-section {
+        margin-bottom: 24px;
+      }
+
+      .info-type {
+        display: inline-block;
+        padding: 6px 12px;
+        background: rgba(29, 185, 84, 0.1);
+        color: var(--accent);
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 600;
+        text-transform: uppercase;
+        margin-bottom: 12px;
+      }
+
+      .info-title {
+        font-size: 24px;
+        font-weight: 700;
+        margin-bottom: 8px;
+        line-height: 1.3;
+      }
+
+      .info-subtitle {
+        font-size: 16px;
+        color: var(--text-secondary);
+        margin-bottom: 4px;
+      }
+
+      .info-detail {
+        display: flex;
+        justify-content: space-between;
+        padding: 12px 0;
+        border-bottom: 1px solid var(--border);
+        font-size: 14px;
+      }
+
+      .info-detail:last-child {
+        border-bottom: none;
+      }
+
+      .info-detail-label {
+        color: var(--text-secondary);
+        font-weight: 500;
+      }
+
+      .info-detail-value {
+        color: var(--text-primary);
+        font-weight: 600;
+        text-align: right;
+      }
+
+      .info-tracks {
+        max-height: 300px;
+        overflow-y: auto;
+      }
+
+      .info-track-item {
+        padding: 12px;
+        background: var(--bg-secondary);
+        border-radius: 8px;
+        margin-bottom: 8px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        transition: all 0.3s ease;
+      }
+
+      .info-track-item:hover {
+        background: var(--border);
+        transform: translateX(5px);
+      }
+
+      .info-track-number {
+        font-size: 14px;
+        color: var(--text-secondary);
+        font-weight: 600;
+        min-width: 25px;
+      }
+
+      .info-track-details {
+        flex: 1;
+      }
+
+      .info-track-name {
+        font-size: 14px;
+        font-weight: 600;
+        margin-bottom: 2px;
+      }
+
+      .info-track-artist {
+        font-size: 12px;
+        color: var(--text-secondary);
+      }
+
+      .loading-spinner {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 40px;
+        gap: 16px;
+      }
+
+      .spinner {
+        width: 48px;
+        height: 48px;
+        border: 4px solid var(--border);
+        border-top-color: var(--accent);
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+      }
+
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      .loading-text {
+        color: var(--text-secondary);
+        font-size: 14px;
+      }
+
+      @media (max-width: 1200px) {
+        .info-panel {
+          width: 350px;
+        }
+      }
+
       @media (max-width: 768px) {
         .header {
           padding: 15px 20px;
@@ -378,6 +598,11 @@
         .main-content {
           padding: 20px;
         }
+
+        .info-panel {
+          width: 100%;
+          max-width: 400px;
+        }
       }
     </style>
   </head>
@@ -405,40 +630,53 @@
       </header>
 
       <main class="main-content">
-        <div class="download-card">
-          <div class="input-group">
-            <label class="input-label" for="spotifyUrl"
-              >Spotify URL (Song, Playlist, Artist)</label
-            >
-            <div class="input-wrapper">
-              <input
-                type="text"
-                id="spotifyUrl"
-                class="input-field"
-                placeholder="https://open.spotify.com/track/..."
-              />
+        <div class="content-wrapper">
+          <div class="download-card">
+            <div class="input-group">
+              <label class="input-label" for="spotifyUrl"
+                >Spotify URL (Song or Playlist)</label
+              >
+              <div class="input-wrapper">
+                <input
+                  type="text"
+                  id="spotifyUrl"
+                  class="input-field"
+                  placeholder="https://open.spotify.com/track/..."
+                />
+              </div>
             </div>
+
+            <button class="download-button" id="downloadBtn">
+              <span>Download</span>
+            </button>
+
+            <div class="progress-container" id="progressContainer">
+              <div class="progress-label">
+                <span id="progressText">Downloading...</span>
+                <span id="progressPercent">0%</span>
+              </div>
+              <div class="progress-bar">
+                <div
+                  class="progress-fill"
+                  id="progressFill"
+                  style="width: 0%"
+                ></div>
+              </div>
+            </div>
+
+            <div class="status-message" id="statusMessage"></div>
           </div>
+        </div>
 
-          <button class="download-button" id="downloadBtn">
-            <span>Download</span>
-          </button>
-
-          <div class="progress-container" id="progressContainer">
-            <div class="progress-label">
-              <span id="progressText">Downloading...</span>
-              <span id="progressPercent">0%</span>
-            </div>
-            <div class="progress-bar">
-              <div
-                class="progress-fill"
-                id="progressFill"
-                style="width: 0%"
-              ></div>
-            </div>
+        <!-- Info Panel -->
+        <div class="info-panel" id="infoPanel">
+          <div class="info-panel-header">
+            <h2 class="info-panel-title">Information</h2>
+            <button class="close-info-btn" id="closeInfoBtn">✕</button>
           </div>
-
-          <div class="status-message" id="statusMessage"></div>
+          <div class="info-panel-content" id="infoPanelContent">
+            <!-- Content will be loaded dynamically -->
+          </div>
         </div>
       </main>
     </div>

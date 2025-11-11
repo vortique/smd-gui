@@ -178,17 +178,31 @@ function showInfoLoading() {
 }
 
 // Open when URL entered
-document.getElementById('spotifyUrl').addEventListener('input', (e) => {
+document.getElementById('spotifyUrl').addEventListener('input', async (e) => {
+  showInfoLoading();
+
+  if (window.electronAPI.getApiCredentials() === null) {
+    showStatusWithTimeout("Please enter your CLIENT ID and CLIENT SECRET from Settings tab.", "error");
+    closeInfoPanel();
+    return;
+  }
+
   const url = e.target.value.trim();
   if (url.includes('spotify.com')) {
     showInfoLoading();
-    const id = fetch_url(url)
-    window.electronAPI.getSpotifyInfo(id).then(showTrackInfo/showPlaylistInfo);
+
+    const data = await window.electronAPI.getSpotifyInfo(url);
+
+    console.log(data);
+
+    if (data.type === "err") {
+      showStatusWithTimeout("Cannot load URL informations.", "error");
+      closeInfoPanel();
+      return
+    } else if (data.type === "track") {
+      showTrackInfo(data);
+    } else {
+      console.error("hata");
+    }
   }
 });
-
-function fetch_url(url) {
-  fetched_url = url.substring(url.lastIndexOf("/") + 1, url.indexOf("?"));
-
-  return fetched_url;
-}

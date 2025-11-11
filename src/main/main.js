@@ -1,7 +1,12 @@
-const { app, BrowserWindow, ipcMain, Menu } = require("electron");
-const path = require("path");
-const fsPromises = require("fs").promises;
-const axios = require("axios");
+// main.js (ES Module)
+import { app, BrowserWindow, ipcMain, Menu } from "electron";
+import path from "path";
+import fsPromises from "fs/promises";
+import axios from "axios";
+
+import { fileURLToPath } from "url";
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 let mainWindow = null;
 let optionsWindow = null;
@@ -15,8 +20,6 @@ const createWindow = async () => {
       preload: path.join(__dirname, "../renderer/preload/preload-main.js"),
     },
   });
-
-  await fsPromises.writeFile(configPath, "", { encoding: "utf8" });
 
   win.loadFile(path.join(__dirname, "../html/index.html"));
 
@@ -60,12 +63,19 @@ const saveOptions = async (clientId, clientSecret) => {
 
 const getApiCredentials = async () => {
   try {
-    const jsonString = await fsPromises.readFile(configPath, {
+    let jsonString = await fsPromises.readFile(configPath, {
       encoding: "utf8",
     });
-    return JSON.parse(jsonString);
+
+    // Dosya boşsa "{}" olarak kabul et
+    if (!jsonString.trim()) {
+      jsonString = "{}";
+    }
+
+    const data = JSON.parse(jsonString);
+    return data;
   } catch (err) {
-    console.error(err);
+    console.error("getApiCredentials hatası:", err);
     return null;
   }
 };
@@ -82,10 +92,12 @@ const requestAccessToken = async () => {
     "content-type": "application/x-www-form-urlencoded",
     Authorization: `Basic ${b64AuthStr}`,
   };
-  const data = { grant_type: "client_secrets" };
+
+  const data = new URLSearchParams();
+  data.append("grant_type", "client_credentials");
 
   try {
-    const response = await axios.post(url, data, { headers: headers });
+    const response = await axios.post(url, data, { headers });
 
     if (response.status === 200) {
       const expiringDate = new Date(
@@ -101,7 +113,7 @@ const requestAccessToken = async () => {
         return result;
       }
     } else {
-      return null;
+      return { success: false };
     }
   } catch (err) {
     console.log(err);
@@ -114,14 +126,10 @@ const saveAccessToken = async (accessToken, expiringDate) => {
     await fsPromises.mkdir(path.dirname(configPath), { recursive: true });
 
     let jsonData = {};
-    try {
-      const currentData = await fsPromises.readFile(configPath, {
-        encoding: "utf8",
-      });
-      jsonData = JSON.parse(currentData);
-    } catch (err) {
-      if (err.code !== "ENOENT") throw err;
-    }
+    const currentData = await fsPromises.readFile(configPath, {
+      encoding: "utf8",
+    });
+    jsonData = JSON.parse(currentData);
 
     jsonData["access-token"] = {
       "access-token": accessToken,
@@ -141,7 +149,7 @@ const saveAccessToken = async (accessToken, expiringDate) => {
 
 export const getAccessToken = async () => {
   try {
-    const data = await fs.readFile(configPath, { encoding: "utf8" });
+    const data = await fsPromises.readFile(configPath, { encoding: "utf8" });
     let jsonData = JSON.parse(data);
 
     const accessInfo = jsonData["access-token"];
@@ -153,7 +161,9 @@ export const getAccessToken = async () => {
 
       const status = await requestAccessToken();
       if (status.success) {
-        const updated = await fs.readFile(configPath, { encoding: "utf8" });
+        const updated = await fsPromises.readFile(configPath, {
+          encoding: "utf8",
+        });
         const updatedJson = JSON.parse(updated);
         return updatedJson["access-token"]["access-token"];
       } else {
@@ -166,7 +176,9 @@ export const getAccessToken = async () => {
 
       const status = await requestAccessToken();
       if (status.success) {
-        const updated = await fs.readFile(configPath, { encoding: "utf8" });
+        const updated = await fsPromises.readFile(configPath, {
+          encoding: "utf8",
+        });
         const updatedJson = JSON.parse(updated);
         return updatedJson["access-token"]["access-token"];
       } else {
@@ -182,13 +194,116 @@ export const getAccessToken = async () => {
   }
 };
 
-const getSpotifyInfo = async (id) => {
-  try {
-    
-  }
-}
+const fetchUrl = (url) => {
+  const fetched_url = url.substring(url.lastIndexOf("/") + 1, url.indexOf("?"));
 
-app.whenReady().then(() => {
+  return fetched_url;
+};
+
+const getAlbumInfo = async (url) => {
+  if (url === "" || url === null) {
+    return
+  }
+  
+  try {
+    const id = url.substring(url.lastIndexOf("/") + 1);
+
+    const accessToken = await getAccessToken();
+
+    const headers = {
+      Authorization: `Bearer ${accessToken}`,
+    };
+
+    const apiUrl = `https://api.spotify.com/v1/albums/${id}`;
+
+    const response = await axios.get(apiUrl, { headers });
+
+    if (response.status === 200) {
+      let track_artists = "";
+
+      for (const artist of response.data["artists"]) {
+        track_artists += artist["name"] + ", ";
+      }
+
+      const data = {
+        type: "album",
+        image: response.data["images"][0]["url"] || "",
+        name: response.data.name || "",
+        artist: track_artists,
+        releaseDate: response.data["release_date"] || "",
+      };
+
+      return data;
+    } else {
+      return { type: "err" };
+    }
+  } catch (err) {
+    console.log(err);
+    return { type: "err" };
+  }
+};
+
+const getSpotifyInfo = async (url) => {
+  if (url === "" || url === null) {
+    return
+  }
+
+  try {
+    let apiUrl = "";
+    const id = fetchUrl(url);
+
+    if (url.includes("track")) {
+      apiUrl = `https://api.spotify.com/v1/tracks/${id}`;
+
+      const accessToken = await getAccessToken();
+
+      const headers = {
+        Authorization: `Bearer ${accessToken}`,
+      };
+
+      const response = await axios.get(apiUrl, { headers });
+
+      if (response.status === 200) {
+        let track_artists = "";
+
+        console.log(response.data["album"]["artists"]);
+        for (const artist of response.data["album"]["artists"]) {
+          track_artists += artist["name"] + ", ";
+        }
+
+        const albumInfo = await getAlbumInfo(
+          response.data["album"]["external_urls"]["spotify"] || ""
+        );
+
+        const data = {
+          type: "track",
+          image: response.data["album"]["images"][0]["url"] || "",
+          name: response.data["album"]["name"] || "",
+          artist: track_artists,
+          album: albumInfo.name,
+          duration: response.data["duration_ms"] / 60000,
+          releaseDate: response.data["album"]["release_date"] || "",
+        };
+
+        return data;
+      } else {
+        return { type: "err" };
+      }
+    } else if (url.includes("artist")) {
+      apiUrl = `https://api.spotify.com/v1/artists/${id}`;
+    } else if (url.includes("playlist")) {
+      apiUrl = `https://api.spotify.com/v1/playlists/${id}`;
+    } else if (url.includes("album")) {
+    } else {
+      return { type: "err" };
+    }
+  } catch (err) {
+    console.log(err);
+    return { type: "err" };
+  }
+};
+
+app.whenReady().then(async () => {
   ipcMain.handle("open-settings", () => createOptionsWindow());
   ipcMain.handle("close-settings-window", () => closeSettingsWindow());
   ipcMain.handle(
@@ -201,9 +316,19 @@ app.whenReady().then(() => {
     "request-access-token",
     async () => await requestAccessToken()
   );
-  ipcMain.handle("get-access-token", async () => await getAccessToken())
+  ipcMain.handle("get-access-token", async () => await getAccessToken());
+  ipcMain.handle(
+    "get-spotify-info",
+    async (_event, url) => await getSpotifyInfo(url)
+  );
 
   configPath = path.join(app.getPath("userData"), "config.json");
+
+  try {
+    await fsPromises.access(configPath);
+  } catch {
+    await fsPromises.writeFile(configPath, "", { encoding: "utf8" });
+  }
 
   createWindow();
 

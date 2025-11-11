@@ -3,6 +3,7 @@ import { app, BrowserWindow, ipcMain, Menu } from "electron";
 import path from "path";
 import fsPromises from "fs/promises";
 import axios from "axios";
+import ytdl from "ytdl-core";
 
 import { fileURLToPath } from "url";
 const __filename = fileURLToPath(import.meta.url);
@@ -14,8 +15,8 @@ let configPath = null;
 
 const createWindow = async () => {
   const win = new BrowserWindow({
-    width: 1150,
-    height: 800,
+    width: 1350,
+    height: 900,
     webPreferences: {
       preload: path.join(__dirname, "../renderer/preload/preload-main.js"),
     },
@@ -69,7 +70,6 @@ const getApiCredentials = async () => {
       encoding: "utf8",
     });
 
-    // Dosya boşsa "{}" olarak kabul et
     if (!jsonString.trim()) {
       jsonString = "{}";
     }
@@ -177,7 +177,7 @@ const getAccessToken = async () => {
       console.log("Access token expired. Requesting new...");
 
       const status = await requestAccessToken();
-      await wait(2000)
+      await wait(2000);
       if (status.success) {
         const updated = await fsPromises.readFile(configPath, {
           encoding: "utf8",
@@ -205,7 +205,7 @@ const fetchUrl = (url) => {
 
 const getAlbumInfo = async (url) => {
   if (url === "" || url === null) {
-    return;
+    return { type: "err" };
   }
 
   try {
@@ -250,9 +250,66 @@ const getAlbumInfo = async (url) => {
   }
 };
 
+const getArtistsTopTracks = async (id) => {
+  if (id === "" || id === null) {
+    return { type: "err" };
+  }
+
+  try {
+    const apiUrl = `https://api.spotify.com/v1/artists/${id}/top-tracks`;
+
+    const accessToken = await getAccessToken();
+
+    if (accessToken === null) {
+      return { type: "err" };
+    }
+
+    const headers = {
+      Authorization: `Bearer ${accessToken}`,
+    };
+
+    const response = await axios.get(apiUrl, { headers });
+
+    if (response.status === 200) {
+      let tracks = [];
+
+      for (const trackInfos of response.data["tracks"]) {
+        if (tracks.length === 20) {
+          if (response.data["tracks"].length > tracks.length) {
+            tracks.push({ name: "There is more...", album: "SMD-GUI" });
+          }
+          break;
+        }
+
+        const track = trackInfos["album"];
+
+        let track_artists = "";
+
+        if (track["artists"].length > 1) {
+          for (const artist of track["artists"]) {
+            track_artists += artist["name"] + ", ";
+          }
+        }
+
+        const trackData = {
+          name: track["name"],
+          album: track_artists === "" ? "Single" : track_artists,
+        };
+
+        tracks.push(trackData);
+      }
+
+      return tracks;
+    }
+  } catch (err) {
+    console.log(err);
+    return [];
+  }
+};
+
 const getSpotifyInfo = async (url) => {
   if (url === "" || url === null) {
-    return;
+    return { type: "err" };
   }
 
   try {
@@ -289,7 +346,8 @@ const getSpotifyInfo = async (url) => {
           artist: track_artists,
           album: albumInfo.name,
           duration: response.data["duration_ms"] / 60000,
-          releaseDate: response.data["album"]["release_date"] || "No release date",
+          releaseDate:
+            response.data["album"]["release_date"] || "No release date",
         };
 
         return data;
@@ -298,6 +356,34 @@ const getSpotifyInfo = async (url) => {
       }
     } else if (url.includes("artist")) {
       apiUrl = `https://api.spotify.com/v1/artists/${id}`;
+
+      const accessToken = await getAccessToken();
+
+      const headers = {
+        Authorization: `Bearer ${accessToken}`,
+      };
+
+      const response = await axios.get(apiUrl, { headers });
+
+      if (response.status === 200) {
+        const topTracks = await getArtistsTopTracks(id);
+
+        const data = {
+          type: "artist",
+          image: response.data["images"][0]["url"] || "",
+          name: response.data["name"] || "No name",
+          followers: response.data["followers"]["total"],
+          popularity: response.data["popularity"],
+          genres: response.data["genres"],
+          topTracks: topTracks,
+        };
+
+        console.log(data.topTracks);
+
+        return data;
+      } else {
+        return { type: "err" };
+      }
     } else if (url.includes("playlist")) {
       apiUrl = `https://api.spotify.com/v1/playlists/${id}`;
 
@@ -351,6 +437,59 @@ const getSpotifyInfo = async (url) => {
         return { type: "err" };
       }
     } else if (url.includes("album")) {
+      apiUrl = `https://api.spotify.com/v1/albums/${id}`;
+
+      //  TODO
+
+      // const accessToken = await getAccessToken();
+
+      // const headers = {
+      //   Authorization: `Bearer ${accessToken}`,
+      // };
+
+      // const response = await axios.get(apiUrl, { headers });
+
+      // if (response.status === 200) {
+      //   let tracks = [];
+
+      //   for (const trackInfos of response.data["tracks"]["items"]) {
+      //     if (tracks.length === 20) {
+      //       if (response.data["tracks"]["items"].length > tracks.length) {
+      //         tracks.push({ name: "There is more...", artist: "SMD-GUI" });
+      //       }
+      //       break;
+      //     }
+
+      //     const track = trackInfos["track"]["album"];
+
+      //     let track_artists = "";
+
+      //     for (const artist of track["artists"]) {
+      //       track_artists += artist["name"] + ", ";
+      //     }
+
+      //     const trackData = {
+      //       name: track["name"],
+      //       artist: track_artists,
+      //     };
+
+      //     tracks.push(trackData);
+      //   }
+
+      //   const data = {
+      //     type: "playlist",
+      //     image: response.data["images"][0]["url"] || "",
+      //     name: response.data["name"] || "No name",
+      //     owner: response.data["owner"]["display_name"] || "No owner",
+      //     totalTracks: response.data["tracks"]["total"] || 0,
+      //     description: response.data["description"] || "No description",
+      //     tracks: tracks,
+      //   };
+
+      //   return data;
+      // } else {
+      //   return { type: "err" };
+      // }
     } else {
       return { type: "err" };
     }

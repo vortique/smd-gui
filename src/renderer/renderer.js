@@ -171,7 +171,7 @@ function showArtistInfo(data) {
       <span class="info-track-number">${i + 1}</span>
       <div class="info-track-details">
         <div class="info-track-name">${track.name}</div>
-        <div class="info-track-artist">${track.album || 'Single'}</div>
+        <div class="info-track-artist">${track.album}</div>
       </div>
     </div>
   `).join('') : '';
@@ -207,20 +207,6 @@ function showArtistInfo(data) {
         <div class="info-detail">
           <span class="info-detail-label">Popularity</span>
           <span class="info-detail-value">${data.popularity}/100</span>
-        </div>
-      ` : ''}
-      
-      ${data.totalTracks ? `
-        <div class="info-detail">
-          <span class="info-detail-label">Total Tracks</span>
-          <span class="info-detail-value">${data.totalTracks}</span>
-        </div>
-      ` : ''}
-      
-      ${data.totalAlbums ? `
-        <div class="info-detail">
-          <span class="info-detail-label">Total Albums</span>
-          <span class="info-detail-value">${data.totalAlbums}</span>
         </div>
       ` : ''}
     </div>
@@ -281,6 +267,11 @@ document.getElementById('spotifyUrl').addEventListener('input', async (e) => {
   }
 
   const url = e.target.value.trim();
+
+  if (url === "") {
+    closeInfoPanel();
+  }
+
   if (url.includes('spotify.com')) {
     showInfoLoading();
 
@@ -298,6 +289,8 @@ document.getElementById('spotifyUrl').addEventListener('input', async (e) => {
       showArtistInfo(data)
     } else if (data.type === "playlist") {
       showPlaylistInfo(data)
+    } else if (data.type === "album") {
+      // TODO : Panele albüm gösterme ekle mal herif...
     } else {
       console.error("hata");
     }

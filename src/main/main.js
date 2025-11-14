@@ -440,57 +440,58 @@ const getSpotifyInfo = async (url) => {
     } else if (url.includes("album")) {
       apiUrl = `https://api.spotify.com/v1/albums/${id}`;
 
-      //  TODO
+      const accessToken = await getAccessToken();
 
-      // const accessToken = await getAccessToken();
+      const headers = {
+        Authorization: `Bearer ${accessToken}`,
+      };
 
-      // const headers = {
-      //   Authorization: `Bearer ${accessToken}`,
-      // };
+      const response = await axios.get(apiUrl, { headers });
 
-      // const response = await axios.get(apiUrl, { headers });
+      if (response.status === 200) {
+        let tracks = [];
 
-      // if (response.status === 200) {
-      //   let tracks = [];
+        for (const trackInfos of response.data["tracks"]["items"]) {
+          if (tracks.length === 20) {
+            if (response.data["tracks"]["items"].length > tracks.length) {
+              tracks.push({ name: "There is more...", artist: "SMD-GUI" });
+            }
+            break;
+          }
 
-      //   for (const trackInfos of response.data["tracks"]["items"]) {
-      //     if (tracks.length === 20) {
-      //       if (response.data["tracks"]["items"].length > tracks.length) {
-      //         tracks.push({ name: "There is more...", artist: "SMD-GUI" });
-      //       }
-      //       break;
-      //     }
+          let track_artists = "";
 
-      //     const track = trackInfos["track"]["album"];
+          for (const artist of trackInfos["artists"]) {
+            track_artists += artist["name"] + ", ";
+          }
 
-      //     let track_artists = "";
+          const trackData = {
+            name: trackInfos["name"],
+            artist: track_artists,
+          };
 
-      //     for (const artist of track["artists"]) {
-      //       track_artists += artist["name"] + ", ";
-      //     }
+          tracks.push(trackData);
+        }
 
-      //     const trackData = {
-      //       name: track["name"],
-      //       artist: track_artists,
-      //     };
+        let album_artists = "";
+        for (const artist of response.data["artists"]) {
+          album_artists += artist["name"] + ", ";
+        }
 
-      //     tracks.push(trackData);
-      //   }
+        const data = {
+          type: "album",
+          image: response.data["images"][0]["url"] || "",
+          name: response.data["name"] || "No name",
+          artist: album_artists || "No artist",
+          releaseDate: response.data["release_date"] || "No release date",
+          totalTracks: response.data["total_tracks"] || 0,
+          tracks: tracks,
+        };
 
-      //   const data = {
-      //     type: "playlist",
-      //     image: response.data["images"][0]["url"] || "",
-      //     name: response.data["name"] || "No name",
-      //     owner: response.data["owner"]["display_name"] || "No owner",
-      //     totalTracks: response.data["tracks"]["total"] || 0,
-      //     description: response.data["description"] || "No description",
-      //     tracks: tracks,
-      //   };
-
-      //   return data;
-      // } else {
-      //   return { type: "err" };
-      // }
+        return data;
+      } else {
+        return { type: "err" };
+      }
     } else {
       return { type: "err", message: `Status Error ${response.status}` };
     }
@@ -501,8 +502,6 @@ const getSpotifyInfo = async (url) => {
 };
 
 const downloadSongFromUrl = async (spotifyInfo) => {
-  // TODO : şarkıyı yüklesin bide ana html'de progress ba rkaldır onun yerine statik bir şey ekle diğer şekilde zor ya
-
   try {
     console.log("[downloadSongFromUrl] spotifyInfo:", spotifyInfo);
     console.log("[downloadSongFromUrl] spotifyInfo.artist type:", typeof spotifyInfo.artist, "value:", spotifyInfo.artist);

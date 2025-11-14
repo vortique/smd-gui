@@ -105,12 +105,15 @@ downloadBtn.addEventListener("click", async () => {
     statusSteps.classList.remove("active");
     downloadBtn.disabled = false;
 
-    showStatusWithTimeout(`Error while getting info of URL. Error Message: ${spotifyInfo.message}`);
+    showStatusWithTimeout(
+      `Error while getting info of URL. Error Message: ${spotifyInfo.message}`,
+      "error"
+    );
     return;
-  } else {
-    steps[1].classList.remove("active");
-    steps[1].classList.add("completed");
   }
+
+  steps[1].classList.remove("active");
+  steps[1].classList.add("completed");
 
   steps[2].classList.add("active");
 
@@ -120,12 +123,15 @@ downloadBtn.addEventListener("click", async () => {
     statusSteps.classList.remove("active");
     downloadBtn.disabled = false;
 
-    showStatusWithTimeout(`Error while downloading song! Error Message: ${downloadResult.message}`);
+    showStatusWithTimeout(
+      `Error while downloading song! Error Message: ${downloadResult.message}`,
+      "error"
+    );
     return;
   }
 
-  steps[2].classList.remove("active")
-  steps[2].classList.add("completed")
+  steps[2].classList.remove("active");
+  steps[2].classList.add("completed");
 
   steps[3].classList.add("active");
   steps[3].classList.add("completed");
@@ -319,6 +325,65 @@ function showArtistInfo(data) {
   openInfoPanel();
 }
 
+// Show album info
+function showAlbumInfo(data) {
+  const tracksHtml = data.tracks
+    ? data.tracks
+        .map(
+          (track, i) => `
+    <div class="info-track-item">
+      <span class="info-track-number">${i + 1}</span>
+      <div class="info-track-details">
+        <div class="info-track-name">${track.name}</div>
+        <div class="info-track-artist">${track.artist}</div>
+      </div>
+    </div>
+  `
+        )
+        .join("")
+    : "";
+
+  const content = `
+    <img src="${data.image}" class="info-cover" alt="Album Cover">
+    <div class="info-section">
+      <span class="info-type">Album</span>
+      <h3 class="info-title">${data.name}</h3>
+      <p class="info-subtitle">${data.artist}</p>
+    </div>
+    <div class="info-section">
+      <div class="info-detail">
+        <span class="info-detail-label">Release Date</span>
+        <span class="info-detail-value">${data.releaseDate}</span>
+      </div>
+      ${
+        data.totalTracks
+          ? `
+        <div class="info-detail">
+          <span class="info-detail-label">Total Tracks</span>
+          <span class="info-detail-value">${data.totalTracks}</span>
+        </div>
+      `
+          : ""
+      }
+    </div>
+    ${
+      tracksHtml
+        ? `
+      <div class="info-section">
+        <div class="info-detail-label" style="margin-bottom: 12px;">Tracks</div>
+        <div class="info-tracks">
+          ${tracksHtml}
+        </div>
+      </div>
+    `
+        : ""
+    }
+  `;
+
+  document.getElementById("infoPanelContent").innerHTML = content;
+  openInfoPanel();
+}
+
 // Helper
 function formatNumber(num) {
   if (num >= 1000000) {
@@ -355,7 +420,7 @@ document.getElementById("spotifyUrl").addEventListener("input", async (e) => {
   }
 
   if (url === "") {
-    statusSteps.classList.remove("active")
+    statusSteps.classList.remove("active");
     closeInfoPanel();
     return;
   }
@@ -378,7 +443,7 @@ document.getElementById("spotifyUrl").addEventListener("input", async (e) => {
     } else if (data.type === "playlist") {
       showPlaylistInfo(data);
     } else if (data.type === "album") {
-      // TODO : Panele albüm gösterme ekle mal herif...
+      showAlbumInfo(data);
     } else {
       console.error("hata");
     }

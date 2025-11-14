@@ -18,7 +18,7 @@ This project is under active development. The app uses track metadata from Spoti
 **Status**: Early development — core single-track flow works; playlist/artist/album support planned.
 
 **Supported platforms**: Linux, macOS, Windows (prebuilt `yt-dlp` binaries are included under `binaries/`).
-**Untested platforms**: OpenBSD. (If you)
+**Untested platforms**: OpenBSD. According to the yt-dlp repository, the `binaries/linux/yt-dlp` binary should also work with OpenBSD, but I'm not sure about that.
 
 **Note**: This project bundles `yt-dlp` binaries in `binaries/` for convenience.
 

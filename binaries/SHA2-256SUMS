@@ -3,6 +3,6 @@ You can use the SHA2-256 checksums below to verify the integrity of the bundled 
 Alternatively, you can verify them yourself by downloading the official `SHA2-256SUMS` file from the release page:
 https://github.com/yt-dlp/yt-dlp/releases/tag/2025.10.22
 
-fd99687645340163094d8b21390c59102900f3e7bcdd1fc0112622bf72989d4f  yt-dlp
-f54b89f1855117b664f18828b5abcc7f80e197f47d15e8983d9775f45a275f43  yt-dlp.exe
-27c0dfb1d9439ba52f642ca16517d9c56408e8ac922ab594403750c74300e2bc  yt-dlp_macos
+fd99687645340163094d8b21390c59102900f3e7bcdd1fc0112622bf72989d4f  binaries/yt-dlp
+f54b89f1855117b664f18828b5abcc7f80e197f47d15e8983d9775f45a275f43  binaries/yt-dlp.exe
+27c0dfb1d9439ba52f642ca16517d9c56408e8ac922ab594403750c74300e2bc  binaries/yt-dlp_macos

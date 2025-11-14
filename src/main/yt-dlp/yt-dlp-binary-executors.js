@@ -32,9 +32,17 @@ export const execYtDlpBinary = async (args) => {
   try {
     const binaryPath = getBinaryPath();
     const { stdout, stderr } = await execFileAsync(binaryPath, args);
-    if (stderr) return console.error('stderr:', stderr);
-    return stdout.trim();
+
+    return {
+      success: true,
+      stdout: stdout.trim(),
+      stderr: stderr ? stderr.trim() : "",
+    };
   } catch (err) {
-    throw new Error(`Binary execution error: ${err.message}`);
+    return {
+      success: false,
+      stdout: "",
+      stderr: err.message || String(err),
+    };
   }
 };

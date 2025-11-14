@@ -8,8 +8,7 @@ import { fileURLToPath } from "url";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-import { isMismatchedSongName } from "./utils/query-filter.js";
-import { updateYtDlp } from "./yt-dlp/installers.js";
+import { updateYtDlp, downloadSong } from "./yt-dlp/installers.js";
 
 let mainWindow = null;
 let optionsWindow = null;
@@ -384,7 +383,7 @@ const getSpotifyInfo = async (url) => {
 
         return data;
       } else {
-        return { type: "err" };
+        return { type: "err", message: `Status Error ${response.status}` };
       }
     } else if (url.includes("playlist")) {
       apiUrl = `https://api.spotify.com/v1/playlists/${id}`;
@@ -436,7 +435,7 @@ const getSpotifyInfo = async (url) => {
 
         return data;
       } else {
-        return { type: "err" };
+        return { type: "err", message: `Status Error ${response.status}` };
       }
     } else if (url.includes("album")) {
       apiUrl = `https://api.spotify.com/v1/albums/${id}`;
@@ -493,26 +492,46 @@ const getSpotifyInfo = async (url) => {
       //   return { type: "err" };
       // }
     } else {
-      return { type: "err" };
+      return { type: "err", message: `Status Error ${response.status}` };
     }
   } catch (err) {
     console.log(err);
-    return { type: "err" };
+    return { type: "err", message: `${err}` };
   }
 };
 
-const downloadSongFromUrl = async (url) => {
+const downloadSongFromUrl = async (spotifyInfo) => {
+  // TODO : şarkıyı yüklesin bide ana html'de progress ba rkaldır onun yerine statik bir şey ekle diğer şekilde zor ya
+
   try {
+    console.log("[downloadSongFromUrl] spotifyInfo:", spotifyInfo);
+    console.log("[downloadSongFromUrl] spotifyInfo.artist type:", typeof spotifyInfo.artist, "value:", spotifyInfo.artist);
+    
     const updateResult = await updateYtDlp();
 
     if (updateResult.success === false) {
-      return { success: false };
+      return { success: false, message: "yt-dlp could not be updated." };
+    }
+
+    if (spotifyInfo.type === "track") {
+      // Ensure artist is a string
+      const artistStr = typeof spotifyInfo.artist === 'string' ? spotifyInfo.artist : JSON.stringify(spotifyInfo.artist);
+      const songQuery = `${spotifyInfo.name} ${artistStr}`;
+      console.log("[downloadSongFromUrl] songQuery:", songQuery);
+      console.log("[downloadSongFromUrl] music path:", app.getPath("music"));
+      const downloadResult = await downloadSong(songQuery, app.getPath("music"));
+
+      if (downloadResult.success === true) {
+        return { success: true };
+      } else {
+        return { success: false, message: downloadResult.message };
+      }
     }
   } catch (err) {
     console.error(err);
-    return { success: false };
+    return { success: false, message: err };
   }
-}
+};
 
 app.whenReady().then(async () => {
   ipcMain.handle("open-settings", () => createOptionsWindow());
@@ -532,7 +551,10 @@ app.whenReady().then(async () => {
     "get-spotify-info",
     async (_event, url) => await getSpotifyInfo(url)
   );
-  ipcMain.handle("download-song", async (_event, url) => await downloadSongFromUrl(url))
+  ipcMain.handle(
+    "download-song",
+    async (_event, spotifyInfo) => await downloadSongFromUrl(spotifyInfo)
+  );
 
   configPath = path.join(app.getPath("userData"), "config.json");
 

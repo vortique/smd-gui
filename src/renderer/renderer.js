@@ -97,8 +97,6 @@ downloadBtn.addEventListener("click", async () => {
   steps[0].classList.remove("active");
   steps[0].classList.add("completed");
 
-  // TODO
-
   steps[1].classList.add("active");
 
   const spotifyInfo = await window.electronAPI.getSpotifyInfo(url);

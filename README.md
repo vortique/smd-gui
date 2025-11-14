@@ -92,7 +92,7 @@ Downloading part of the program works like this:
 4. Fetch metadata of URL via Spotify API
 5. Give metadata to yt-dlp and make a search from YouTube according to metadata
 6. Download found video according to metadata
-7. Extract<> the sound from downloaded video with FFmpeg and save it
+7. Extract the sound from downloaded video with FFmpeg and save it
 
 ## Preview
 

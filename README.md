@@ -1,4 +1,3 @@
-
 # 🎵 smd-gui
 
 [![version](https://img.shields.io/badge/version-0.3.0-blue.svg)](https://github.com/vortique/smd-gui)
@@ -13,11 +12,12 @@ This project is under active development. The app uses track metadata from Spoti
 
 ---
 
-**Why this project?**: It provides a lightweight, cross-platform desktop interface to fetch tracks by Spotify URL and download them using bundled `yt-dlp` binaries and `ffmpeg`. And most importantly, I will be using this program. So it should exists.
+**Why this project?**: It provides a lightweight, cross-platform desktop interface to fetch tracks by Spotify URL and download them using bundled `yt-dlp` binaries and `ffmpeg`. And most importantly, I will be using this program. So it should exist.
 
 **Status**: Early development — core single-track flow works; playlist/artist/album support planned.
 
 **Supported platforms**: Linux, macOS, Windows (prebuilt `yt-dlp` binaries are included under `binaries/`).
+
 **Untested platforms**: OpenBSD. According to the yt-dlp repository, the `binaries/linux/yt-dlp` binary should also work with OpenBSD, but I'm not sure about that.
 
 **Note**: This project bundles `yt-dlp` binaries in `binaries/` for convenience.
@@ -25,12 +25,15 @@ This project is under active development. The app uses track metadata from Spoti
 ## Table of Contents
 
 - **Features**
+- **Roadmap**
 - **Prerequisites**
 - **Installation**
 - **Usage**
+- **Preview**
 - **Development**
 - **Packaging**
 - **Contributing**
+- **Legal Notice**
 - **License**
 
 ## Features
@@ -38,6 +41,16 @@ This project is under active development. The app uses track metadata from Spoti
 - **Single-track download**: Enter a Spotify track URL to fetch metadata and download a matching YouTube audio.
 - **Bundled binaries**: Includes `yt-dlp` executables for each OS in `binaries/` to make running simpler.
 - **Audio conversion**: Uses `ffmpeg` (via `ffmpeg-static-electron`) to convert downloads to common audio formats.
+
+## Roadmap
+
+- [x] Single track download
+- [ ] Playlist download
+- [ ] Album download
+- [ ] Artist tracks download
+- [ ] Custom download directory
+- [ ] Download queue
+- [ ] Multi-format export
 
 ## Prerequisites
 
@@ -69,6 +82,26 @@ The `start` script runs `electron .` (see `package.json`).
 - The app will search YouTube (via `yt-dlp`) for the best matching result, download the video, and convert it to audio.
 - Downloaded files and temporary files location depends on OS; temporary files goes to your OS's temp file directory and Downloaded songs goes to your OS's musics directory (for now).
 
+### How It Works?
+
+Downloading part of the program works like this:
+
+1. Get Spotify URL
+2. Get Spotify ID from URL
+3. Get Access Token from Spotify (if needed)
+4. Fetch metadata of URL via Spotify API
+5. Give metadata to yt-dlp and make a search from YouTube according to metadata
+6. Download found video according to metadata
+7. Extract<> the sound from downloaded video with FFmpeg and save it
+
+## Preview
+
+**Preview of information panel**:
+![info-panel-Preview](./github/previews/info-panel-preview.png)
+
+**Preview of downloading a song**:
+![downlading-Preview](./github/previews/downloading-info-preview.png)
+
 ## Development
 
 - Open the project in your editor (e.g., `code .`).
@@ -98,6 +131,11 @@ npx electron-builder
 ## Contributing
 
 Contributions, bug reports, and feature requests are welcome. Please open issues or submit pull requests. When contributing, include a clear description of the change and, if applicable, steps to reproduce and test.
+
+## Legal Notice
+
+This project does not provide or encourage downloading copyrighted content.
+Users are responsible for ensuring they have the rights to download and use the audio they fetch.
 
 ## License
 

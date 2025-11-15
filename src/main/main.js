@@ -78,7 +78,7 @@ const getApiCredentials = async () => {
     const data = JSON.parse(jsonString);
     return data;
   } catch (err) {
-    console.error("getApiCredentials hatası:", err);
+    console.error("getApiCredentials error:", err);
     return null;
   }
 };
@@ -193,7 +193,7 @@ const getAccessToken = async () => {
     console.log("Access token available.");
     return accessToken;
   } catch (err) {
-    console.error("getAccessToken hatası:", err);
+    console.error("getAccessToken error:", err);
     return null;
   }
 };

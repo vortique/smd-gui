@@ -86,7 +86,7 @@ settingsForm.addEventListener("submit", async (e) => {
     }, 1500);
   } catch (error) {
     showStatus("❌ Error while saving keys!", "error");
-    console.error("Hata:", error);
+    console.error("Error:", error);
   } finally {
     saveBtn.disabled = false;
     saveBtn.textContent = "💾 Save";

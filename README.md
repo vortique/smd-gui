@@ -100,7 +100,7 @@ Downloading part of the program works like this:
 ![info-panel-Preview](./github/previews/info-panel-preview.png)
 
 **Preview of downloading a song**:
-![downlading-Preview](./github/previews/downloading-info-preview.png)
+![downloading-Preview](./github/previews/downloading-info-preview.png)
 
 ## Development
 

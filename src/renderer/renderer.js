@@ -433,7 +433,7 @@ document.getElementById("spotifyUrl").addEventListener("input", async (e) => {
     console.log(data);
 
     if (data.type === "err") {
-      showStatusWithTimeout("Cannot load URL informations.", "error");
+      showStatusWithTimeout("Cannot load URL information.", "error");
       closeInfoPanel();
       return;
     } else if (data.type === "track") {
@@ -445,7 +445,7 @@ document.getElementById("spotifyUrl").addEventListener("input", async (e) => {
     } else if (data.type === "album") {
       showAlbumInfo(data);
     } else {
-      console.error("hata");
+      console.error("Error");
     }
   }
 });

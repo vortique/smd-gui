@@ -102,6 +102,8 @@ Downloading part of the program works like this:
 **Preview of downloading a song**:
 ![downloading-Preview](./github/previews/downloading-info-preview.png)
 
+**NOTE**: These screenshots are only for preview and downloading is just a simulation.
+
 ## Development
 
 - Open the project in your editor (e.g., `code .`).

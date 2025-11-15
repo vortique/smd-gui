@@ -37,6 +37,15 @@ const searchSong = async (songName) => {
     }
 
     const searchResults = result.stdout.split("\n");
+    let searchVideoIds = []
+
+    for (let i = 1; i <= searchResults.length; i++) {
+      if (i % 2 === 0) {
+        searchVideoIds.push(searchResults[i]);
+      }
+    }
+
+    // TODO : Biliyorsun sen işini
 
     return { success: true, result: searchResults[1] };
   } catch (err) {

@@ -76,7 +76,25 @@ function showStatusAndWait(message, type) {
   statusMessage.className = `status-message active ${type}`;
 }
 
+window.electronAPI.onSongStart((songName) => {
+  document.getElementById("songDownloadStatus").innerText =
+    "Downloading: " + songName;
+});
+
+window.electronAPI.onSongDone(() => {
+  document.getElementById("songDownloadStatus").innerText =
+    "Song(s) installed.";
+});
+
+window.electronAPI.onDownloadStatusChanged((message) => {
+  document.getElementById("songDownloadStatus").innerText =
+    message;
+});
+
+// Song download
 downloadBtn.addEventListener("click", async () => {
+  document.getElementById("songDownloadStatus").innerText =
+    "Downloading music files...";
   statusMessage.classList.remove("active");
   steps.forEach((step) => {
     step.classList.remove("active", "completed");
@@ -283,6 +301,19 @@ function showArtistInfo(data) {
 
     <div class="info-section">
       ${
+        data.totalAlbum
+          ? `
+        <div class="info-detail">
+          <span class="info-detail-label">Album Count</span>
+          <span class="info-detail-value">${data.totalAlbum}</span>
+        </div>
+      `
+          : ""
+      }
+    </div>
+
+    <div class="info-section">
+      ${
         data.popularity
           ? `
         <div class="info-detail">
@@ -406,6 +437,10 @@ function showInfoLoading() {
   openInfoPanel();
 }
 
+const trackCountGroup = document.getElementById("trackCountGroup");
+const trackCountInfo = document.getElementById("trackCountInfo");
+const trackCountInput = document.getElementById("trackCount");
+
 // Open when URL entered
 document.getElementById("spotifyUrl").addEventListener("input", async (e) => {
   url = e.target.value.trim();
@@ -435,17 +470,42 @@ document.getElementById("spotifyUrl").addEventListener("input", async (e) => {
     if (data.type === "err") {
       showStatusWithTimeout("Cannot load URL information.", "error");
       closeInfoPanel();
+      trackCountGroup.style.display = "none";
+      trackCountInput.value = 0;
       return;
     } else if (data.type === "track") {
       showTrackInfo(data);
     } else if (data.type === "artist") {
       showArtistInfo(data);
+      trackCountGroup.style.display = "block";
+      trackCountInfo.innerText = "Total albums: " + data.totalAlbum;
+      trackCountInput.max = data.totalAlbum;
+      trackCountInput.value = data.totalAlbum;
     } else if (data.type === "playlist") {
       showPlaylistInfo(data);
+      trackCountGroup.style.display = "block";
+      trackCountInfo.innerText = "Total tracks: " + data.totalTracks;
+      trackCountInput.max = data.totalTracks;
+      trackCountInput.value = data.totalTracks;
     } else if (data.type === "album") {
       showAlbumInfo(data);
+      trackCountGroup.style.display = "block";
+      trackCountInfo.innerText = "Total tracks: " + data.totalTracks;
+      trackCountInput.max = data.totalTracks;
+      trackCountInput.value = data.totalTracks;
     } else {
       console.error("Error");
+      trackCountGroup.style.display = "none";
+      trackCountInput.value = 0;
     }
   }
+});
+
+document.getElementById("trackCount").addEventListener("input", (e) => {
+  const max = parseInt(e.target.max);
+  const min = parseInt(e.target.min);
+  let value = parseInt(e.target.value);
+
+  if (value > max) e.target.value = max;
+  if (value < min) e.target.value = min;
 });

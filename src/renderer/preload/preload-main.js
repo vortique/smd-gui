@@ -9,4 +9,7 @@ contextBridge.exposeInMainWorld("electronAPI", {
     return await ipcRenderer.invoke("get-api-credentials")
   },
   downloadSong: async (spotifyInfo) => await ipcRenderer.invoke("download-song", spotifyInfo),
+  onSongStart: (callback) => ipcRenderer.on("songDownloadStart", (_, name) => callback(name)),
+  onSongDone: (callback) => ipcRenderer.on("songDownloadDone", callback),
+  onDownloadStatusChanged: (callback) => ipcRenderer.on("setDownloadStatus", (_, message) => callback(message)),
 });

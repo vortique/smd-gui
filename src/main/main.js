@@ -1,5 +1,6 @@
 // main.js (ES Module)
 import { app, BrowserWindow, ipcMain, Menu } from "electron";
+import { EventEmitter } from "events";
 import path from "path";
 import fsPromises from "fs/promises";
 import axios from "axios";
@@ -308,6 +309,98 @@ const getArtistsTopTracks = async (id) => {
   }
 };
 
+const getArtistsAlbumCount = async (id) => {
+  if (id === "" || id === null) {
+    return 0;
+  }
+
+  try {
+    const apiUrl = `https://api.spotify.com/v1/artists/${id}/albums`;
+
+    const accessToken = await getAccessToken();
+
+    if (accessToken === null) {
+      return 0;
+    }
+
+    const headers = {
+      Authorization: `Bearer ${accessToken}`,
+    };
+
+    const response = await axios.get(apiUrl, { headers });
+
+    if (response.status === 200) {
+      return response.data["total"];
+    }
+  } catch (err) {
+    console.log(err);
+    return 0;
+  }
+};
+
+const getPlaylistTracks = async (id) => {
+  if (id === "" || id === null) {
+    return { success: false, message: "No id for playlist." };
+  }
+
+  try {
+    const fields =
+      "fields=next%2Citems%28track%28album%28name%2Cartists%29%29%29";
+    let url = `https://api.spotify.com/v1/playlists/${id}/tracks?limit=100&offset=0`;
+
+    const accessToken = await getAccessToken();
+
+    if (accessToken === null) {
+      return { success: false, message: "Can not get access token." };
+    }
+
+    const headers = {
+      Authorization: `Bearer ${accessToken}`,
+    };
+
+    let tracks = [];
+
+    while (url !== null) {
+      url = `${url}&${fields}`;
+
+      console.log(url);
+
+      const response = await axios.get(url, { headers });
+
+      if (response.status === 200) {
+        for (const trackInfo of response.data["items"]) {
+          const track = trackInfo["track"]["album"];
+
+          let track_artists = "";
+
+          for (const artist of track["artists"]) {
+            track_artists += artist["name"] + ", ";
+          }
+
+          track_artists = track_artists.substring(
+            0,
+            track_artists.lastIndexOf(", ")
+          );
+
+          const trackData = {
+            name: track["name"],
+            artist: track_artists,
+          };
+
+          tracks.push(trackData);
+        }
+
+        url = response.data["next"];
+      }
+    }
+
+    return { success: true, result: tracks };
+  } catch (err) {
+    console.error("[getPlaylistTracks] error: " + err);
+    return { success: false, message: String(err) };
+  }
+};
+
 const getSpotifyInfo = async (url) => {
   if (url === "" || url === null) {
     return { type: "err" };
@@ -322,6 +415,10 @@ const getSpotifyInfo = async (url) => {
 
       const accessToken = await getAccessToken();
 
+      if (accessToken === null) {
+        return { type: "err", message: `Can not get access token` };
+      }
+
       const headers = {
         Authorization: `Bearer ${accessToken}`,
       };
@@ -332,9 +429,15 @@ const getSpotifyInfo = async (url) => {
         let track_artists = "";
 
         console.log(response.data["album"]["artists"]);
+
         for (const artist of response.data["album"]["artists"]) {
           track_artists += artist["name"] + ", ";
         }
+
+        track_artists = track_artists.substring(
+          0,
+          track_artists.lastIndexOf(", ")
+        );
 
         const albumInfo = await getAlbumInfo(
           response.data["album"]["external_urls"]["spotify"] || ""
@@ -360,6 +463,10 @@ const getSpotifyInfo = async (url) => {
 
       const accessToken = await getAccessToken();
 
+      if (accessToken === null) {
+        return { type: "err", message: `Can not get access token` };
+      }
+
       const headers = {
         Authorization: `Bearer ${accessToken}`,
       };
@@ -368,18 +475,19 @@ const getSpotifyInfo = async (url) => {
 
       if (response.status === 200) {
         const topTracks = await getArtistsTopTracks(id);
+        const totalAlbum = await getArtistsAlbumCount(id);
 
         const data = {
           type: "artist",
+          id: id,
           image: response.data["images"][0]["url"] || "",
           name: response.data["name"] || "No name",
           followers: response.data["followers"]["total"],
           popularity: response.data["popularity"],
           genres: response.data["genres"],
+          totalAlbum: totalAlbum || 0,
           topTracks: topTracks,
         };
-
-        console.log(data.topTracks);
 
         return data;
       } else {
@@ -389,6 +497,10 @@ const getSpotifyInfo = async (url) => {
       apiUrl = `https://api.spotify.com/v1/playlists/${id}`;
 
       const accessToken = await getAccessToken();
+
+      if (accessToken === null) {
+        return { type: "err", message: `Can not get access token` };
+      }
 
       const headers = {
         Authorization: `Bearer ${accessToken}`,
@@ -415,6 +527,11 @@ const getSpotifyInfo = async (url) => {
             track_artists += artist["name"] + ", ";
           }
 
+          track_artists = track_artists.substring(
+            0,
+            track_artists.lastIndexOf(", ")
+          );
+
           const trackData = {
             name: track["name"],
             artist: track_artists,
@@ -425,6 +542,7 @@ const getSpotifyInfo = async (url) => {
 
         const data = {
           type: "playlist",
+          id: id,
           image: response.data["images"][0]["url"] || "",
           name: response.data["name"] || "No name",
           owner: response.data["owner"]["display_name"] || "No owner",
@@ -441,6 +559,10 @@ const getSpotifyInfo = async (url) => {
       apiUrl = `https://api.spotify.com/v1/albums/${id}`;
 
       const accessToken = await getAccessToken();
+
+      if (accessToken === null) {
+        return { type: "err", message: `Can not get access token` };
+      }
 
       const headers = {
         Authorization: `Bearer ${accessToken}`,
@@ -465,6 +587,11 @@ const getSpotifyInfo = async (url) => {
             track_artists += artist["name"] + ", ";
           }
 
+          track_artists = track_artists.substring(
+            0,
+            track_artists.lastIndexOf(", ")
+          );
+
           const trackData = {
             name: trackInfos["name"],
             artist: track_artists,
@@ -480,6 +607,7 @@ const getSpotifyInfo = async (url) => {
 
         const data = {
           type: "album",
+          id: id,
           image: response.data["images"][0]["url"] || "",
           name: response.data["name"] || "No name",
           artist: album_artists || "No artist",
@@ -501,38 +629,120 @@ const getSpotifyInfo = async (url) => {
   }
 };
 
-const downloadSongFromUrl = async (spotifyInfo) => {
-  try {
-    console.log("[downloadSongFromUrl] spotifyInfo:", spotifyInfo);
-    console.log("[downloadSongFromUrl] spotifyInfo.artist type:", typeof spotifyInfo.artist, "value:", spotifyInfo.artist);
-    
-    const updateResult = await updateYtDlp();
-
-    if (updateResult.success === false) {
-      return { success: false, message: "yt-dlp could not be updated." };
-    }
-
-    if (spotifyInfo.type === "track") {
-      // Ensure artist is a string
-      const artistStr = typeof spotifyInfo.artist === 'string' ? spotifyInfo.artist : JSON.stringify(spotifyInfo.artist);
-      const songQuery = `${spotifyInfo.name} ${artistStr}`;
-      console.log("[downloadSongFromUrl] songQuery:", songQuery);
-      console.log("[downloadSongFromUrl] music path:", app.getPath("music"));
-      const downloadResult = await downloadSong(songQuery, app.getPath("music"));
-
-      if (downloadResult.success === true) {
-        return { success: true };
-      } else {
-        return { success: false, message: downloadResult.message };
-      }
-    }
-  } catch (err) {
-    console.error(err);
-    return { success: false, message: err };
+class SongDownloader extends EventEmitter {
+  songDownloadStart(songName) {
+    this.emit("songDownloadStart", songName);
   }
-};
+
+  songDownloadDone() {
+    this.emit("songDownloadDone");
+  }
+
+  setDownloadStatus(message) {
+    this.emit("setDownloadStatus", message);
+  }
+
+  async songDownload(trackInfo) {
+    //Ensure artist is a string
+    const artistStr =
+      typeof trackInfo.artist === "string"
+        ? trackInfo.artist
+        : JSON.stringify(trackInfo.artist);
+    const songQuery = `${trackInfo.name} ${artistStr}`;
+    console.log("[downloadSongFromUrl] songQuery:", songQuery);
+    console.log("[downloadSongFromUrl] music path:", app.getPath("music"));
+
+    this.songDownloadStart(songQuery);
+
+    const downloadResult = await downloadSong(songQuery, app.getPath("music"));
+
+    if (downloadResult.success === true) {
+      this.songDownloadDone();
+      return { success: true };
+    } else {
+      this.songDownloadDone();
+      return { success: false, message: downloadResult.message };
+    }
+  }
+
+  async downloadSongFromUrl(spotifyInfo) {
+    try {
+      console.log("[downloadSongFromUrl] spotifyInfo:", spotifyInfo);
+      console.log(
+        "[downloadSongFromUrl] spotifyInfo.artist type:",
+        typeof spotifyInfo.artist,
+        "value:",
+        spotifyInfo.artist
+      );
+
+      const updateResult = await updateYtDlp();
+
+      if (updateResult.success === false) {
+        return { success: false, message: "yt-dlp could not be updated." };
+      }
+
+      if (spotifyInfo.type === "track") {
+        const downloadResult = await this.songDownload(spotifyInfo);
+
+        if (downloadResult.success === false) {
+          return { success: false, message: downloadResult.message };
+        }
+
+        return { success: true };
+      } else if (spotifyInfo.type === "playlist") {
+        /** Data structure of playlists
+         *{
+            type: "playlist",
+            id: id,
+            image: response.data["images"][0]["url"] || "",
+            name: response.data["name"] || "No name",
+            owner: response.data["owner"]["display_name"] || "No owner",
+            totalTracks: response.data["tracks"]["total"] || 0,
+            description: response.data["description"] || "No description",
+            tracks: tracks,
+          };
+         */
+        if (spotifyInfo.totalTracks === 0) {
+          return { success: false, message: "No tracks found in paylist." };
+        }
+
+        this.setDownloadStatus("Getting every track from playlist...");
+
+        const playlistId = spotifyInfo["id"];
+
+        const playlistTracks = await getPlaylistTracks(playlistId);
+
+        if (playlistTracks.success === false) {
+          return { success: false, message: playlistTracks.message };
+        }
+
+        for (const track of playlistTracks.result) {
+          const downloadResult = await this.songDownload(track);
+          
+          if (downloadResult.success === false) {
+            downloadResult = await this.songDownload(track);
+            
+            // Try again if download failed.
+            if (downloadResult.success === false) {
+              return { success: false, message: downloadResult.message };
+            }
+          }
+        }
+
+        return { success: true };
+      } else if (spotifyInfo.type === "album") {
+        // TODO : Albüm yükleme yap
+      }
+    } catch (err) {
+      console.error(err);
+      return { success: false, message: String(err) };
+    }
+  }
+}
 
 app.whenReady().then(async () => {
+  const downloader = new SongDownloader();
+
   ipcMain.handle("open-settings", () => createOptionsWindow());
   ipcMain.handle("close-settings-window", () => closeSettingsWindow());
   ipcMain.handle(
@@ -552,8 +762,21 @@ app.whenReady().then(async () => {
   );
   ipcMain.handle(
     "download-song",
-    async (_event, spotifyInfo) => await downloadSongFromUrl(spotifyInfo)
+    async (_event, spotifyInfo) =>
+      await downloader.downloadSongFromUrl(spotifyInfo)
   );
+
+  downloader.on("songDownloadStart", (songName) => {
+    mainWindow.webContents.send("songDownloadStart", songName);
+  });
+
+  downloader.on("songDownloadDone", () => {
+    mainWindow.webContents.send("songDownloadDone");
+  });
+
+  downloader.on("setDownloadStatus", (message) => {
+    mainWindow.webContents.send("setDownloadStatus", message);
+  });
 
   configPath = path.join(app.getPath("userData"), "config.json");
 

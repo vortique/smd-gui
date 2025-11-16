@@ -1094,6 +1094,36 @@
               </div>
             </div>
 
+            <div
+              class="input-group"
+              id="trackCountGroup"
+              style="display: none; margin-top: 15px"
+            >
+              <label class="input-label" for="trackCount">
+                How many tracks do you want to download?
+              </label>
+              <div class="input-wrapper">
+                <input
+                  type="number"
+                  id="trackCount"
+                  class="input-field"
+                  placeholder="Enter number of tracks"
+                  min="0"
+                  max="100"
+                  value="0"
+                />
+              </div>
+              <div
+                style="
+                  margin-top: 5px;
+                  font-size: 0.85em;
+                  color: var(--text-secondary);
+                "
+              >
+                <span id="trackCountInfo">Total tracks: 0</span>
+              </div>
+            </div>
+
             <button class="download-button" id="downloadBtn">
               <span>Download</span>
             </button>
@@ -1124,7 +1154,7 @@
                   <div class="step-icon">🎵</div>
                   <div class="step-content">
                     <div class="step-title">Downloading Audio</div>
-                    <div class="step-description">
+                    <div class="step-description" id="songDownloadStatus">
                       Downloading music files...
                     </div>
                   </div>

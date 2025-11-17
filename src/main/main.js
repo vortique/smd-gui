@@ -218,7 +218,7 @@ class SpotifySongDownloader extends EventEmitter {
       }
     }
 
-    return { success: true, message: "Some songs may not be downloaded." };
+    return { success: true };
   }
 
   /**
@@ -253,7 +253,7 @@ class SpotifySongDownloader extends EventEmitter {
       }
     }
 
-    return { success: true, message: "Some songs may not be downloaded." };
+    return { success: true };
   }
 
   async downladArtistTopTracks(spotifyInfo) {
@@ -287,7 +287,7 @@ class SpotifySongDownloader extends EventEmitter {
       }
     }
 
-    return { success: true, message: "Some songs may not be downloaded." };
+    return { success: true };
   }
 
   // ==================== Main Download Handler ====================

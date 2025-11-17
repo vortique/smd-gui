@@ -46,8 +46,8 @@ This project is under active development. The app uses track metadata from Spoti
 
 - [x] Single track download
 - [x] Playlist download
-- [ ] Album download
-- [ ] Artist tracks download
+- [x] Album download
+- [x] Artist tracks download
 - [ ] Custom download directory
 - [ ] Download queue
 - [ ] Multi-format export

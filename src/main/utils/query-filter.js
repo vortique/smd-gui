@@ -1,18 +1,21 @@
 export const isMismatchedSongName = (query, foundSongName) => {
-  // Checks if any "modifier" word (like 'slowed', 'lyrics', etc.) 
-  // appears in one name but not the other.
+  // Returns true if modifier words (like 'slowed', 'lyrics', etc.) 
+  // appear in one name but not the other (indicating a mismatch).
 
   const queryLower = query.toLowerCase();
+  const foundNameLower = foundSongName.toLowerCase();
 
-  const filteredWords = ["slowed", "speed up", "sped up", "lyrics"];
+  const filteredWords = ["slowed", "speed up", "sped up"];
 
-  for (const sentence of filteredWords) {
-    if (foundSongName.includes(sentence) || !queryLower.includes(sentence)) {
-      return true;
-    } else if (!foundSongName.contains(sentence) || queryLower.contains(sentence)) {
+  for (const modifier of filteredWords) {
+    const inQuery = queryLower.includes(modifier);
+    const inFound = foundNameLower.includes(modifier);
+
+    // If modifier appears in one but not the other, it's a mismatch
+    if (inQuery !== inFound) {
       return true;
     }
   }
 
   return false;
-}
+};

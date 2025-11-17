@@ -146,6 +146,8 @@ downloadBtn.addEventListener("click", async () => {
       "error"
     );
     return;
+  } else if (downloadResult.message !== null) {
+    showStatusWithTimeout(downloadResult.message, "info");
   }
 
   steps[2].classList.remove("active");
@@ -456,6 +458,7 @@ document.getElementById("spotifyUrl").addEventListener("input", async (e) => {
 
   if (url === "") {
     statusSteps.classList.remove("active");
+    trackCountGroup.style.display = "none";
     closeInfoPanel();
     return;
   }
@@ -478,9 +481,9 @@ document.getElementById("spotifyUrl").addEventListener("input", async (e) => {
     } else if (data.type === "artist") {
       showArtistInfo(data);
       trackCountGroup.style.display = "block";
-      trackCountInfo.innerText = "Total albums: " + data.totalAlbum;
-      trackCountInput.max = data.totalAlbum;
-      trackCountInput.value = data.totalAlbum;
+      trackCountInfo.innerText = "Total top tracks: " + data.topTracks.length;
+      trackCountInput.max = data.topTracks.length;
+      trackCountInput.value = data.topTracks.length;
     } else if (data.type === "playlist") {
       showPlaylistInfo(data);
       trackCountGroup.style.display = "block";

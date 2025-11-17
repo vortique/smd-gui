@@ -45,18 +45,23 @@ const searchSong = async (songName, searchCount = 3) => {
       return { success: false, message: result.stderr };
     }
 
-    const searchResults = result.stdout.split("\n");
+    const searchResults = result.stdout.split("\n").filter(line => line.trim() !== "");
 
-    for (let i = 0; i <= searchResults.length; i += 2) {
+    console.log(searchResults);
+    
+
+    for (let i = 0; i < searchResults.length; i += 2) {
       const foundSongName = searchResults[i];
       const songId = searchResults[i + 1];
+
+      if (!foundSongName || !songId) {
+        continue;
+      }
 
       if (!isMismatchedSongName(songName, foundSongName)) {
         return { success: true, result: songId };
       }
     }
-
-
 
     return { success: false, message: "No video found." };
   } catch (err) {

@@ -1,16 +1,12 @@
 // spotify-api.js (ES Module)
+import { app } from "electron";
 import fsPromises from "fs/promises";
 import axios from "axios";
+import path from "path";
 
-let configPath = null;
+import { getApiCredentials } from "../main.js";
 
-/**
- * Sets the config path for API credentials and tokens
- * @param {string} path - The path to the config file
- */
-export const setConfigPath = (path) => {
-  configPath = path;
-};
+let configPath = path.join(app.getPath("userData"), "config.json");
 
 const wait = (ms) => new Promise((res) => setTimeout(res, ms));
 
@@ -77,15 +73,28 @@ export const requestAccessToken = async () => {
  */
 export const saveAccessToken = async (accessToken, expiringDate) => {
   try {
-    await fsPromises.mkdir(configPath.split("/").slice(0, -1).join("/"), {
-      recursive: true,
-    });
+    // Ensure we have a valid directory to create
+    const dir = configPath && configPath !== "" ? path.dirname(configPath) : app.getPath("userData");
+    await fsPromises.mkdir(dir, { recursive: true });
 
     let jsonData = {};
-    const currentData = await fsPromises.readFile(configPath, {
-      encoding: "utf8",
-    });
-    jsonData = JSON.parse(currentData);
+    let currentData = "";
+
+    try {
+      currentData = await fsPromises.readFile(configPath, { encoding: "utf8" });
+    } catch (err) {
+      currentData = "";
+    }
+
+    if (!currentData || !currentData.trim()) {
+      jsonData = {};
+    } else {
+      try {
+        jsonData = JSON.parse(currentData);
+      } catch (err) {
+        jsonData = {};
+      }
+    }
 
     jsonData["access-token"] = {
       "access-token": accessToken,
@@ -214,7 +223,7 @@ export const getAlbumInfo = async (url) => {
  */
 export const getArtistsTopTracks = async (id) => {
   if (id === "" || id === null) {
-    return [];
+    return { success: false, message: "No id for artist." };
   }
 
   try {
@@ -223,7 +232,7 @@ export const getArtistsTopTracks = async (id) => {
     const accessToken = await getAccessToken();
 
     if (accessToken === null) {
-      return [];
+      return { success: false, message: "Can not get access token" };
     }
 
     const headers = {
@@ -236,41 +245,39 @@ export const getArtistsTopTracks = async (id) => {
       let tracks = [];
 
       for (const trackInfos of response.data["tracks"]) {
-        if (tracks.length === 20) {
-          if (response.data["tracks"].length > tracks.length) {
-            tracks.push({ name: "There is more...", album: "SMD-GUI" });
-          }
-          break;
-        }
-
         const track = trackInfos["album"];
 
         let track_artists = "";
 
-        if (track["artists"].length > 1) {
+        if (track["artists"].length >= 1) {
           for (const artist of track["artists"]) {
             track_artists += artist["name"] + ", ";
           }
         }
 
+        track_artists = track_artists.substring(
+            0,
+            track_artists.lastIndexOf(", ")
+          );
+
         const trackData = {
           name: track["name"],
-          album: track_artists === "" ? "Single" : track_artists,
+          artist: track_artists === "" ? "Single" : track_artists,
         };
 
         tracks.push(trackData);
       }
 
-      return tracks;
+      return { success: true, result: tracks };
     }
   } catch (err) {
-    console.log(err);
-    return [];
+    console.log("[getArtistsTopTracks] error: " + err);
+    return { success: false, message: String(err) };
   }
 };
 
 /**
- * Gets total album count for an artist
+ * Gets total album count for an artist (Deprecated)
  * @param {string} id - Artist ID
  * @returns {Promise<number>} Total album count
  */
@@ -371,6 +378,63 @@ export const getPlaylistTracks = async (id) => {
   }
 };
 
+export const getAlbumTracks = async (id) => {
+  if (id === "" || id === null) {
+    return { success: false, message: "No id for playlist." };
+  }
+
+  try {
+    let url = `https://api.spotify.com/v1/albums/${id}/tracks?limit=100&offset=0`;
+
+    const accessToken = await getAccessToken();
+
+    if (accessToken === null) {
+      return { success: false, message: "Can not get access token." };
+    }
+
+    const headers = {
+      Authorization: `Bearer ${accessToken}`,
+    };
+
+    let tracks = [];
+
+    while (url !== null) {
+      console.log(url);
+
+      const response = await axios.get(url, { headers });
+
+      if (response.status === 200) {
+        for (const trackInfo of response.data["items"]) {
+          let track_artists = "";
+
+          for (const artist of trackInfo["artists"]) {
+            track_artists += artist["name"] + ", ";
+          }
+
+          track_artists = track_artists.substring(
+            0,
+            track_artists.lastIndexOf(", ")
+          );
+
+          const trackData = {
+            name: trackInfo["name"],
+            artist: track_artists,
+          };
+
+          tracks.push(trackData);
+        }
+
+        url = response.data["next"];
+      }
+    }
+
+    return { success: true, result: tracks };
+  } catch (err) {
+    console.error("[getAlbumTracks] error: " + err);
+    return { success: false, message: String(err) };
+  }
+};
+
 /**
  * Gets information about Spotify content (track, artist, playlist, or album)
  * @param {string} url - Spotify URL
@@ -449,19 +513,22 @@ export const getSpotifyInfo = async (url) => {
       const response = await axios.get(apiUrl, { headers });
 
       if (response.status === 200) {
-        const topTracks = await getArtistsTopTracks(id);
-        const totalAlbum = await getArtistsAlbumCount(id);
+        const artistName = response["name"];
+        const topTracksResp = await getArtistsTopTracks(id, artistName);
+
+        if (topTracksResp.success === false) {
+          return { success: false, message: topTracksResp.message };
+        }
 
         const data = {
           type: "artist",
           id: id,
           image: response.data["images"][0]["url"] || "",
-          name: response.data["name"] || "No name",
+          name: artistName || "No name",
           followers: response.data["followers"]["total"],
           popularity: response.data["popularity"],
           genres: response.data["genres"],
-          totalAlbum: totalAlbum || 0,
-          topTracks: topTracks,
+          topTracks: topTracksResp.result,
         };
 
         return data;

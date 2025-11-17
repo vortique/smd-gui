@@ -11,7 +11,6 @@ const __dirname = path.dirname(__filename);
 
 import { updateYtDlp, downloadSong } from "./yt-dlp/installers.js";
 import {
-  setConfigPath,
   requestAccessToken,
   saveAccessToken,
   getAccessToken,
@@ -19,6 +18,7 @@ import {
   getArtistsTopTracks,
   getArtistsAlbumCount,
   getPlaylistTracks,
+  getAlbumTracks,
   getSpotifyInfo,
 } from "./spotify/spotify-api.js";
 
@@ -77,7 +77,7 @@ const saveOptions = async (clientId, clientSecret) => {
   }
 };
 
-const getApiCredentials = async () => {
+export const getApiCredentials = async () => {
   try {
     let jsonString = await fsPromises.readFile(configPath, {
       encoding: "utf8",
@@ -137,17 +137,6 @@ class SpotifySongDownloader extends EventEmitter {
   }
 
   /**
-   * Fetches Spotify ID from the URL for API calls.
-   * @param {string} url - The URL ID will fetched.
-   * @returns {string} Fetched Spotify ID.
-   */
-  fetchSpotifyIdFromURL = (url) => {
-    const fetched_url = url.substring(url.lastIndexOf("/") + 1, url.indexOf("?"));
-
-    return fetched_url;
-  };
-
-  /**
    * Downloads a single song from track information
    * @param {Object} trackInfo - Track information with name and artist
    * @returns {Promise<Object>} Success status and optional error message
@@ -155,7 +144,7 @@ class SpotifySongDownloader extends EventEmitter {
   async songDownload(trackInfo) {
     const artistStr = this.ensureArtistString(trackInfo.artist);
     const songQuery = `${trackInfo.name} ${artistStr}`;
-    
+
     console.log("[songDownload] Query:", songQuery);
     console.log("[songDownload] Music path:", app.getPath("music"));
 
@@ -178,10 +167,16 @@ class SpotifySongDownloader extends EventEmitter {
    * @returns {Promise<Object>} Success status and optional error message
    */
   async downloadTrack(spotifyInfo) {
-    const downloadResult = await this.songDownload(spotifyInfo);
+    console.log(spotifyInfo);
+    
+    let downloadResult = await this.songDownload(spotifyInfo);
 
     if (downloadResult.success === false) {
-      return { success: false, message: downloadResult.message };
+      downloadResult = await this.retryDownload(spotifyInfo);
+
+      if (downloadResult.success === false) {
+        return { success: false, message: downloadResult.message };
+      }
     }
 
     return { success: true };
@@ -193,6 +188,10 @@ class SpotifySongDownloader extends EventEmitter {
    * @returns {Promise<Object>} Success status and optional error message
    */
   async downloadPlaylist(spotifyInfo) {
+    if (spotifyInfo.id === null || spotifyInfo.id === "") {
+      return { success: false, message: "No ID gived for playlist." };
+    }
+
     if (spotifyInfo.totalTracks === 0) {
       return { success: false, message: "No tracks found in playlist." };
     }
@@ -214,12 +213,12 @@ class SpotifySongDownloader extends EventEmitter {
         downloadResult = await this.retryDownload(track);
 
         if (downloadResult.success === false) {
-          return { success: false, message: downloadResult.message };
+          continue;
         }
       }
     }
 
-    return { success: true };
+    return { success: true, message: "Some songs may not be downloaded." };
   }
 
   /**
@@ -228,13 +227,20 @@ class SpotifySongDownloader extends EventEmitter {
    * @returns {Promise<Object>} Success status and optional error message
    */
   async downloadAlbum(spotifyInfo) {
+    if (spotifyInfo.id === null || spotifyInfo.id === "") {
+      return { success: false, message: "No ID gived for album." };
+    }
+
     if (spotifyInfo.totalTracks === 0) {
       return { success: false, message: "No tracks found in album." };
     }
 
     this.setDownloadStatus("Downloading tracks from album...");
 
-    for (const track of spotifyInfo.tracks) {
+    const albumId = spotifyInfo.id;
+    const albumTracks = await getAlbumTracks(albumId);
+
+    for (const track of albumTracks.result) {
       let downloadResult = await this.songDownload(track);
 
       if (downloadResult.success === false) {
@@ -247,7 +253,41 @@ class SpotifySongDownloader extends EventEmitter {
       }
     }
 
-    return { success: true };
+    return { success: true, message: "Some songs may not be downloaded." };
+  }
+
+  async downladArtistTopTracks(spotifyInfo) {
+    if (spotifyInfo.id === null || spotifyInfo.id === "") {
+      return { success: false, message: "No ID gived for artist." };
+    }
+
+    if (spotifyInfo.totalTracks === 0) {
+      return { success: false, message: "No top tracks found in artists page." };
+    }
+
+    this.setDownloadStatus("Getting top track from artists page...");
+
+    const artistId = spotifyInfo.id;
+    const artistTopTracks = await getArtistsTopTracks(artistId);
+
+    if (artistTopTracks.success === false) {
+      return { success: false, message: artistTopTracks.message };
+    }
+
+    for (const track of artistTopTracks.result) {
+      let downloadResult = await this.songDownload(track);
+
+      if (downloadResult.success === false) {
+        // Try again if download failed
+        downloadResult = await this.retryDownload(track);
+
+        if (downloadResult.success === false) {
+          continue;
+        }
+      }
+    }
+
+    return { success: true, message: "Some songs may not be downloaded." };
   }
 
   // ==================== Main Download Handler ====================
@@ -261,10 +301,7 @@ class SpotifySongDownloader extends EventEmitter {
   async downloadSongFromUrl(spotifyInfo) {
     try {
       console.log("[downloadSongFromUrl] spotifyInfo:", spotifyInfo);
-      console.log(
-        "[downloadSongFromUrl] spotifyInfo.type:",
-        spotifyInfo.type
-      );
+      console.log("[downloadSongFromUrl] spotifyInfo.type:", spotifyInfo.type);
 
       // Update yt-dlp binary
       const updateResult = await updateYtDlp();
@@ -282,6 +319,9 @@ class SpotifySongDownloader extends EventEmitter {
 
         case "album":
           return await this.downloadAlbum(spotifyInfo);
+
+        case "artist":
+          return await this.downladArtistTopTracks(spotifyInfo);
 
         default:
           return {
@@ -335,7 +375,6 @@ app.whenReady().then(async () => {
   });
 
   configPath = path.join(app.getPath("userData"), "config.json");
-  setConfigPath(configPath);
 
   try {
     await fsPromises.access(configPath);

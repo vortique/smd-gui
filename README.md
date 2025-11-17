@@ -14,7 +14,7 @@ This project is under active development. The app uses track metadata from Spoti
 
 **Why this project?**: It provides a lightweight, cross-platform desktop interface to fetch tracks by Spotify URL and download them using bundled `yt-dlp` binaries and `ffmpeg`. And most importantly, I will be using this program. So it should exist.
 
-**Status**: Early development — core single-track flow works; playlist/artist/album support planned.
+**Status**: Early development — track/playlist/artist/album download supported, but program lacks of customization and error handling.
 
 **Supported platforms**: Linux, macOS, Windows (prebuilt `yt-dlp` binaries are included under `binaries/`).
 

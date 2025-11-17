@@ -166,7 +166,7 @@ class SpotifySongDownloader extends EventEmitter {
    * @param {Object} spotifyInfo - Spotify track information
    * @returns {Promise<Object>} Success status and optional error message
    */
-  async downloadTrack(spotifyInfo) {
+  async downloadTrack(spotifyInfo, count) {
     console.log(spotifyInfo);
     
     let downloadResult = await this.songDownload(spotifyInfo);
@@ -187,7 +187,7 @@ class SpotifySongDownloader extends EventEmitter {
    * @param {Object} spotifyInfo - Spotify playlist information
    * @returns {Promise<Object>} Success status and optional error message
    */
-  async downloadPlaylist(spotifyInfo) {
+  async downloadPlaylist(spotifyInfo, count) {
     if (spotifyInfo.id === null || spotifyInfo.id === "") {
       return { success: false, message: "No ID gived for playlist." };
     }
@@ -226,7 +226,7 @@ class SpotifySongDownloader extends EventEmitter {
    * @param {Object} spotifyInfo - Spotify album information
    * @returns {Promise<Object>} Success status and optional error message
    */
-  async downloadAlbum(spotifyInfo) {
+  async downloadAlbum(spotifyInfo, count) {
     if (spotifyInfo.id === null || spotifyInfo.id === "") {
       return { success: false, message: "No ID gived for album." };
     }
@@ -256,7 +256,7 @@ class SpotifySongDownloader extends EventEmitter {
     return { success: true };
   }
 
-  async downladArtistTopTracks(spotifyInfo) {
+  async downladArtistTopTracks(spotifyInfo, count) {
     if (spotifyInfo.id === null || spotifyInfo.id === "") {
       return { success: false, message: "No ID gived for artist." };
     }
@@ -298,7 +298,7 @@ class SpotifySongDownloader extends EventEmitter {
    * @param {Object} spotifyInfo - Information from Spotify API
    * @returns {Promise<Object>} Success status and optional error message
    */
-  async downloadSongFromUrl(spotifyInfo) {
+  async downloadSongFromUrl(spotifyInfo, count) {
     try {
       console.log("[downloadSongFromUrl] spotifyInfo:", spotifyInfo);
       console.log("[downloadSongFromUrl] spotifyInfo.type:", spotifyInfo.type);
@@ -315,13 +315,13 @@ class SpotifySongDownloader extends EventEmitter {
           return await this.downloadTrack(spotifyInfo);
 
         case "playlist":
-          return await this.downloadPlaylist(spotifyInfo);
+          return await this.downloadPlaylist(spotifyInfo, count);
 
         case "album":
-          return await this.downloadAlbum(spotifyInfo);
+          return await this.downloadAlbum(spotifyInfo, count);
 
         case "artist":
-          return await this.downladArtistTopTracks(spotifyInfo);
+          return await this.downladArtistTopTracks(spotifyInfo, count);
 
         default:
           return {
@@ -358,8 +358,8 @@ app.whenReady().then(async () => {
   );
   ipcMain.handle(
     "download-song",
-    async (_event, spotifyInfo) =>
-      await downloader.downloadSongFromUrl(spotifyInfo)
+    async (_event, spotifyInfo, count) =>
+      await downloader.downloadSongFromUrl(spotifyInfo, count)
   );
 
   downloader.on("songDownloadStart", (songName) => {

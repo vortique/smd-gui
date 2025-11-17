@@ -7,6 +7,10 @@ import { fileURLToPath } from "url";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+/**
+ * Gets yt-dlp binary path according to OS.
+ * @returns {string} yt-dlp binary path.
+ */
 const getBinaryPath = () => {
   const basePath = app.isPackaged
     ? path.join(process.resourcesPath, "binaries")
@@ -28,6 +32,11 @@ const getBinaryPath = () => {
 
 const execFileAsync = promisify(execFile);
 
+/**
+ * Executes yt-dlp binary according to args.
+ * @param {Array<string>} args - CLI arguments for yt-dlp.
+ * @returns {object} Result of the command.
+ */
 export const execYtDlpBinary = async (args) => {
   try {
     const binaryPath = getBinaryPath();

@@ -2,6 +2,10 @@ import { spawn } from "child_process";
 import fs from "fs";
 import ffmpegPathDefault from "ffmpeg-static-electron";
 
+/**
+ * Gets path of the FFmpeg from ffmpeg-static-electron. Fall-back is system's FFmpeg.
+ * @returns {string} Path of the FFmpeg binary.
+ */
 const getFfmpegBinary = () => {
   try {
     // Quick checks for common shapes
@@ -41,6 +45,12 @@ const getFfmpegBinary = () => {
   return "ffmpeg";
 };
 
+/**
+ * Converts video in inputPath path to M4A sound format anmd saves it to outputPath path.
+ * @param {string} inputPath - Video path will be converted.
+ * @param {string} outputPath - Sound save path.
+ * @returns {Promise<object>}
+ */
 export const convertVideoToM4A = (inputPath, outputPath) => {
   return new Promise((resolve, reject) => {
     // Validate paths

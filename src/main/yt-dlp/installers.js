@@ -5,6 +5,10 @@ import { execYtDlpBinary } from "./yt-dlp-binary-executors.js";
 import { isMismatchedSongName } from "../utils/query-filter.js";
 import { convertVideoToM4A } from "../utils/convert-video-to-audio.js";
 
+/**
+ * Updates yt-dlp binary.
+ * @returns {object} Result of the update.
+ */
 export const updateYtDlp = async () => {
   try {
     const result = await execYtDlpBinary(["-U"]);
@@ -23,13 +27,18 @@ export const updateYtDlp = async () => {
   }
 };
 
-const searchSong = async (songName) => {
+/**
+ * Searchs songName in Youtube.
+ * @param {string} songName - The song will be searched.
+ * @returns {object} Result of the search.
+ */
+const searchSong = async (songName, searchCount = 3) => {
   try {
     const result = await execYtDlpBinary([
       "--no-warnings",
       "--get-id",
       "--get-title",
-      `ytsearch3:${songName}`,
+      `ytsearch${searchCount}:${songName}`,
     ]);
 
     if (result.success === false) {
@@ -37,17 +46,19 @@ const searchSong = async (songName) => {
     }
 
     const searchResults = result.stdout.split("\n");
-    let searchVideoIds = []
 
-    for (let i = 1; i <= searchResults.length; i++) {
-      if (i % 2 === 0) {
-        searchVideoIds.push(searchResults[i]);
+    for (let i = 0; i <= searchResults.length; i += 2) {
+      const foundSongName = searchResults[i];
+      const songId = searchResults[i + 1];
+
+      if (!isMismatchedSongName(songName, foundSongName)) {
+        return { success: true, result: songId };
       }
     }
 
-    // TODO : Biliyorsun sen işini
 
-    return { success: true, result: searchResults[1] };
+
+    return { success: false, message: "No video found." };
   } catch (err) {
     console.error(`Search song error: ${err}`);
     return { success: false, message: "Error while searching video." };

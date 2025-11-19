@@ -34,13 +34,13 @@ const getFfmpegBinary = () => {
   } catch (e) {
     console.error(
       "[getFfmpegBinary] error while inspecting ffmpegPathDefault:",
-      e
+      e,
     );
   }
 
   // Last-resort fallback to system ffmpeg binary name (may not exist)
   console.warn(
-    "[getFfmpegBinary] ffmpeg-static-electron did not provide a path; falling back to 'ffmpeg' in PATH"
+    "[getFfmpegBinary] ffmpeg-static-electron did not provide a path; falling back to 'ffmpeg' in PATH",
   );
   return "ffmpeg";
 };
@@ -76,7 +76,7 @@ export const convertVideoToM4A = (inputPath, outputPath) => {
       "[convertVideoToM4A] ffmpegBinary type:",
       typeof ffmpegBinary,
       "value:",
-      ffmpegBinary
+      ffmpegBinary,
     );
 
     if (!ffmpegBinary) {

@@ -70,13 +70,16 @@ settingsForm.addEventListener("submit", async (e) => {
   saveBtn.textContent = "⏳ Saving...";
 
   try {
-    const result = await window.electronAPI.saveSettings(clientId, clientSecret);
+    const result = await window.electronAPI.saveSettings(
+      clientId,
+      clientSecret,
+    );
 
     if (result.success) {
       showStatus("✅ API information's is saved successfully!", "success");
     } else {
       showStatus("❌ Error while saving options!", "success");
-      return
+      return;
     }
 
     // Close window after 1.5 seconds
@@ -104,8 +107,8 @@ window.addEventListener("DOMContentLoaded", async () => {
   try {
     const credentials = await window.electronAPI.getApiCredentials();
     if (credentials !== null) {
-        clientIdInput.value = credentials["client-id"] || '';
-        clientSecretInput.value = credentials["client-secret"] || '';
+      clientIdInput.value = credentials["client-id"] || "";
+      clientSecretInput.value = credentials["client-secret"] || "";
     }
   } catch (error) {
     console.error("Saved options cannot be extracted:", error);

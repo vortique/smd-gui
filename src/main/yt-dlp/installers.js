@@ -46,7 +46,6 @@ const searchSong = async (songName, searchCount = 3) => {
     }
 
     const searchResults = result.stdout.split("\n");
-    
 
     for (let i = 0; i < searchResults.length; i += 2) {
       const foundSongName = searchResults[i];
@@ -70,20 +69,30 @@ const searchSong = async (songName, searchCount = 3) => {
 
 export const downloadSong = async (songName, outputPath) => {
   try {
-    console.log(`[downloadSong] songName type: ${typeof songName}, value:`, songName);
-    console.log(`[downloadSong] outputPath type: ${typeof outputPath}, value:`, outputPath);
-    
+    console.log(
+      `[downloadSong] songName type: ${typeof songName}, value:`,
+      songName,
+    );
+    console.log(
+      `[downloadSong] outputPath type: ${typeof outputPath}, value:`,
+      outputPath,
+    );
+
     // Ensure songName is a string
-    if (typeof songName !== 'string') {
-      throw new Error(`Invalid songName: expected string, got ${typeof songName}`);
+    if (typeof songName !== "string") {
+      throw new Error(
+        `Invalid songName: expected string, got ${typeof songName}`,
+      );
     }
-    if (typeof outputPath !== 'string') {
-      throw new Error(`Invalid outputPath: expected string, got ${typeof outputPath}`);
+    if (typeof outputPath !== "string") {
+      throw new Error(
+        `Invalid outputPath: expected string, got ${typeof outputPath}`,
+      );
     }
-    
+
     const searchResult = await searchSong(songName);
 
-    console.log(searchResult)
+    console.log(searchResult);
 
     if (searchResult.success === false) {
       console.error(searchResult.message);
@@ -92,7 +101,9 @@ export const downloadSong = async (songName, outputPath) => {
 
     const videoId = searchResult.result;
     const videoUrl = `https://www.youtube.com/watch?v=${videoId}`;
-    const tempVideoPath = path.join(app.getPath("temp"), `${Date.now()}.webm`).toString();
+    const tempVideoPath = path
+      .join(app.getPath("temp"), `${Date.now()}.webm`)
+      .toString();
 
     const downloadResult = await execYtDlpBinary([
       "--no-warnings",
@@ -117,7 +128,10 @@ export const downloadSong = async (songName, outputPath) => {
     const filename = `${sanitize(songName)}.m4a`;
     const outputFilePath = path.join(outputPath, filename);
 
-    const convertingResult = await convertVideoToM4A(tempVideoPath, outputFilePath);
+    const convertingResult = await convertVideoToM4A(
+      tempVideoPath,
+      outputFilePath,
+    );
 
     // Remove temporary video file regardless of result
     try {

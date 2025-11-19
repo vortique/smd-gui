@@ -168,7 +168,7 @@ class SpotifySongDownloader extends EventEmitter {
    */
   async downloadTrack(spotifyInfo, count) {
     console.log(spotifyInfo);
-    
+
     let downloadResult = await this.songDownload(spotifyInfo);
 
     if (downloadResult.success === false) {
@@ -292,7 +292,10 @@ class SpotifySongDownloader extends EventEmitter {
     }
 
     if (spotifyInfo.totalTracks === 0) {
-      return { success: false, message: "No top tracks found in artists page." };
+      return {
+        success: false,
+        message: "No top tracks found in artists page.",
+      };
     }
 
     this.setDownloadStatus("Getting top track from artists page...");
@@ -386,22 +389,22 @@ app.whenReady().then(async () => {
   ipcMain.handle(
     "save-settings",
     async (_event, clientId, clientSecret) =>
-      await saveOptions(clientId, clientSecret)
+      await saveOptions(clientId, clientSecret),
   );
   ipcMain.handle("get-api-credentials", async () => await getApiCredentials());
   ipcMain.handle(
     "request-access-token",
-    async () => await requestAccessToken()
+    async () => await requestAccessToken(),
   );
   ipcMain.handle("get-access-token", async () => await getAccessToken());
   ipcMain.handle(
     "get-spotify-info",
-    async (_event, url) => await getSpotifyInfo(url)
+    async (_event, url) => await getSpotifyInfo(url),
   );
   ipcMain.handle(
     "download-song",
     async (_event, spotifyInfo, count) =>
-      await downloader.downloadSongFromUrl(spotifyInfo, count)
+      await downloader.downloadSongFromUrl(spotifyInfo, count),
   );
 
   downloader.on("songDownloadStart", (songName) => {

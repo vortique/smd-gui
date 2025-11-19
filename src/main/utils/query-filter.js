@@ -1,5 +1,5 @@
 export const isMismatchedSongName = (query, foundSongName) => {
-  // Returns true if modifier words (like 'slowed', 'speed up', etc.) 
+  // Returns true if modifier words (like 'slowed', 'speed up', etc.)
   // appear in one name but not the other (indicating a mismatch).
 
   const queryLower = query.toLowerCase();

@@ -45,7 +45,7 @@ export const requestAccessToken = async () => {
 
     if (response.status === 200) {
       const expiringDate = new Date(
-        Date.now() + 1 * 60 * 60 * 1000
+        Date.now() + 1 * 60 * 60 * 1000,
       ).toISOString();
 
       const accessToken = response.data["access_token"];
@@ -74,7 +74,10 @@ export const requestAccessToken = async () => {
 export const saveAccessToken = async (accessToken, expiringDate) => {
   try {
     // Ensure we have a valid directory to create
-    const dir = configPath && configPath !== "" ? path.dirname(configPath) : app.getPath("userData");
+    const dir =
+      configPath && configPath !== ""
+        ? path.dirname(configPath)
+        : app.getPath("userData");
     await fsPromises.mkdir(dir, { recursive: true });
 
     let jsonData = {};
@@ -256,9 +259,9 @@ export const getArtistsTopTracks = async (id) => {
         }
 
         track_artists = track_artists.substring(
-            0,
-            track_artists.lastIndexOf(", ")
-          );
+          0,
+          track_artists.lastIndexOf(", "),
+        );
 
         const trackData = {
           name: track["name"],
@@ -356,7 +359,7 @@ export const getPlaylistTracks = async (id) => {
 
           track_artists = track_artists.substring(
             0,
-            track_artists.lastIndexOf(", ")
+            track_artists.lastIndexOf(", "),
           );
 
           const trackData = {
@@ -413,7 +416,7 @@ export const getAlbumTracks = async (id) => {
 
           track_artists = track_artists.substring(
             0,
-            track_artists.lastIndexOf(", ")
+            track_artists.lastIndexOf(", "),
           );
 
           const trackData = {
@@ -475,11 +478,11 @@ export const getSpotifyInfo = async (url) => {
 
         track_artists = track_artists.substring(
           0,
-          track_artists.lastIndexOf(", ")
+          track_artists.lastIndexOf(", "),
         );
 
         const albumInfo = await getAlbumInfo(
-          response.data["album"]["external_urls"]["spotify"] || ""
+          response.data["album"]["external_urls"]["spotify"] || "",
         );
 
         const data = {
@@ -571,7 +574,7 @@ export const getSpotifyInfo = async (url) => {
 
           track_artists = track_artists.substring(
             0,
-            track_artists.lastIndexOf(", ")
+            track_artists.lastIndexOf(", "),
           );
 
           const trackData = {
@@ -631,7 +634,7 @@ export const getSpotifyInfo = async (url) => {
 
           track_artists = track_artists.substring(
             0,
-            track_artists.lastIndexOf(", ")
+            track_artists.lastIndexOf(", "),
           );
 
           const trackData = {

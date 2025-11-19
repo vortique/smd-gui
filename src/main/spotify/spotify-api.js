@@ -219,7 +219,7 @@ export const getAlbumInfo = async (url) => {
 /**
  * Gets top tracks of an artist
  * @param {string} id - Artist ID
- * @returns {Promise<Array>} Array of top tracks
+ * @returns {Promise<object>} Array of top tracks
  */
 export const getArtistsTopTracks = async (id) => {
   if (id === "" || id === null) {
@@ -384,7 +384,7 @@ export const getAlbumTracks = async (id) => {
   }
 
   try {
-    let url = `https://api.spotify.com/v1/albums/${id}/tracks?limit=100&offset=0`;
+    let url = `https://api.spotify.com/v1/albums/${id}/tracks?limit=50&offset=0`;
 
     const accessToken = await getAccessToken();
 

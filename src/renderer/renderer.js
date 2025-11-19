@@ -59,6 +59,10 @@ const steps = [
   document.getElementById("step3"),
   document.getElementById("step4"),
 ];
+const trackCountGroup = document.getElementById("trackCountGroup");
+const trackCountInfo = document.getElementById("trackCountInfo");
+const trackCountInput = document.getElementById("trackCount");
+
 
 let url = "";
 
@@ -135,7 +139,23 @@ downloadBtn.addEventListener("click", async () => {
 
   steps[2].classList.add("active");
 
-  const downloadResult = await window.electronAPI.downloadSong(spotifyInfo);
+  const downloadCount = Number((trackCountInput.value || "").trim());
+
+  console.log("downloadCount:", downloadCount);
+
+  // Look if user entered download limit correctly
+  if (Number.isNaN(downloadCount)) {
+    statusSteps.classList.remove("active");
+    downloadBtn.disabled = false;
+
+    showStatusWithTimeout(
+      "Please enter number for limiting track download count!",
+      "error"
+    );
+    return;
+  }
+
+  const downloadResult = await window.electronAPI.downloadSong(spotifyInfo, downloadCount);
 
   if (!downloadResult.success) {
     statusSteps.classList.remove("active");
@@ -157,6 +177,10 @@ downloadBtn.addEventListener("click", async () => {
   steps[3].classList.add("completed");
 
   downloadBtn.disabled = false;
+
+  setTimeout(() => {
+    statusSteps.classList.remove("active");
+  }, 2500);
 });
 
 function openInfoPanel() {
@@ -439,15 +463,12 @@ function showInfoLoading() {
   openInfoPanel();
 }
 
-const trackCountGroup = document.getElementById("trackCountGroup");
-const trackCountInfo = document.getElementById("trackCountInfo");
-const trackCountInput = document.getElementById("trackCount");
-
 // Open when URL entered
 document.getElementById("spotifyUrl").addEventListener("input", async (e) => {
   url = e.target.value.trim();
 
-  if (window.electronAPI.getApiCredentials() === null) {
+  const apiCredentials = await window.electronAPI.getApiCredentials();
+  if (!apiCredentials) {
     showStatusWithTimeout(
       "Please enter your CLIENT ID and CLIENT SECRET from Settings tab.",
       "error"
@@ -470,36 +491,42 @@ document.getElementById("spotifyUrl").addEventListener("input", async (e) => {
 
     console.log(data);
 
-    if (data.type === "err") {
-      showStatusWithTimeout("Cannot load URL information.", "error");
-      closeInfoPanel();
-      trackCountGroup.style.display = "none";
-      trackCountInput.value = 0;
-      return;
-    } else if (data.type === "track") {
-      showTrackInfo(data);
-    } else if (data.type === "artist") {
-      showArtistInfo(data);
-      trackCountGroup.style.display = "block";
-      trackCountInfo.innerText = "Total top tracks: " + data.topTracks.length;
-      trackCountInput.max = data.topTracks.length;
-      trackCountInput.value = data.topTracks.length;
-    } else if (data.type === "playlist") {
-      showPlaylistInfo(data);
-      trackCountGroup.style.display = "block";
-      trackCountInfo.innerText = "Total tracks: " + data.totalTracks;
-      trackCountInput.max = data.totalTracks;
-      trackCountInput.value = data.totalTracks;
-    } else if (data.type === "album") {
-      showAlbumInfo(data);
-      trackCountGroup.style.display = "block";
-      trackCountInfo.innerText = "Total tracks: " + data.totalTracks;
-      trackCountInput.max = data.totalTracks;
-      trackCountInput.value = data.totalTracks;
-    } else {
-      console.error("Error");
-      trackCountGroup.style.display = "none";
-      trackCountInput.value = 0;
+    switch (data.type) {
+      case "err":
+        showStatusWithTimeout("Cannot load URL information.", "error");
+        closeInfoPanel();
+        trackCountGroup.style.display = "none";
+        trackCountInput.value = 0;
+        break;
+      case "track":
+        showTrackInfo(data);
+        break;
+      case "artist":
+        showArtistInfo(data);
+        trackCountGroup.style.display = "block";
+        trackCountInfo.innerText = "Total top tracks: " + data.topTracks.length;
+        trackCountInput.max = data.topTracks.length;
+        trackCountInput.value = data.topTracks.length;
+        break;
+      case "playlist":
+        showPlaylistInfo(data);
+        trackCountGroup.style.display = "block";
+        trackCountInfo.innerText = "Total tracks: " + data.totalTracks;
+        trackCountInput.max = data.totalTracks;
+        trackCountInput.value = data.totalTracks;
+        break;
+      case "album":
+        showAlbumInfo(data);
+        trackCountGroup.style.display = "block";
+        trackCountInfo.innerText = "Total tracks: " + data.totalTracks;
+        trackCountInput.max = data.totalTracks;
+        trackCountInput.value = data.totalTracks;
+        break;
+      default:
+        console.error("Error");
+        trackCountGroup.style.display = "none";
+        trackCountInput.value = 0;
+        break;
     }
   }
 });

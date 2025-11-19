@@ -45,9 +45,7 @@ const searchSong = async (songName, searchCount = 3) => {
       return { success: false, message: result.stderr };
     }
 
-    const searchResults = result.stdout.split("\n").filter(line => line.trim() !== "");
-
-    console.log(searchResults);
+    const searchResults = result.stdout.split("\n");
     
 
     for (let i = 0; i < searchResults.length; i += 2) {

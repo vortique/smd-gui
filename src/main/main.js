@@ -205,6 +205,12 @@ class SpotifySongDownloader extends EventEmitter {
       return { success: false, message: playlistTracks.message };
     }
 
+    if (count === 0) {
+      count = playlistTracks.result.length;
+    }
+
+    let downloadedTracks = 0;
+
     for (const track of playlistTracks.result) {
       let downloadResult = await this.songDownload(track);
 
@@ -215,6 +221,12 @@ class SpotifySongDownloader extends EventEmitter {
         if (downloadResult.success === false) {
           continue;
         }
+      }
+
+      downloadedTracks++;
+
+      if (downloadedTracks === count) {
+        break;
       }
     }
 
@@ -240,6 +252,18 @@ class SpotifySongDownloader extends EventEmitter {
     const albumId = spotifyInfo.id;
     const albumTracks = await getAlbumTracks(albumId);
 
+    if (albumTracks.success === false) {
+      return { success: false, message: albumTracks.message };
+    }
+
+    if (count === 0) {
+      count = albumTracks.result.length;
+    }
+
+    console.log(count);
+
+    let downloadedTracks = 0;
+
     for (const track of albumTracks.result) {
       let downloadResult = await this.songDownload(track);
 
@@ -250,6 +274,12 @@ class SpotifySongDownloader extends EventEmitter {
         if (downloadResult.success === false) {
           continue;
         }
+      }
+
+      downloadedTracks++;
+
+      if (downloadedTracks === count) {
+        break;
       }
     }
 
@@ -274,6 +304,12 @@ class SpotifySongDownloader extends EventEmitter {
       return { success: false, message: artistTopTracks.message };
     }
 
+    if (count === 0) {
+      count = artistTopTracks.result.length;
+    }
+
+    let downloadedTracks = 0;
+
     for (const track of artistTopTracks.result) {
       let downloadResult = await this.songDownload(track);
 
@@ -284,6 +320,12 @@ class SpotifySongDownloader extends EventEmitter {
         if (downloadResult.success === false) {
           continue;
         }
+      }
+
+      downloadedTracks++;
+
+      if (downloadedTracks === count) {
+        break;
       }
     }
 

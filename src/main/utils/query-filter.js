@@ -5,7 +5,7 @@ export const isMismatchedSongName = (query, foundSongName) => {
   const queryLower = query.toLowerCase();
   const foundNameLower = foundSongName.toLowerCase();
 
-  const filteredWords = ["slowed", "speed up", "sped up"];
+  const filteredWords = ["slowed", "speed up", "sped up", "nightcore"];
 
   for (const modifier of filteredWords) {
     const inQuery = queryLower.includes(modifier);

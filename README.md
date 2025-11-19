@@ -1,6 +1,6 @@
 # 🎵 smd-gui
 
-[![version](https://img.shields.io/badge/version-0.3.0-blue.svg)](https://github.com/vortique/smd-gui)
+[![version](https://img.shields.io/badge/version-0.5.0-blue.svg)](https://github.com/vortique/smd-gui)
 [![license](https://img.shields.io/github/license/vortique/smd-gui.svg)](LICENSE)
 [![last-commit](https://img.shields.io/github/last-commit/vortique/smd-gui.svg)](https://github.com/vortique/smd-gui/commits/main)
 [![issues](https://img.shields.io/github/issues/vortique/smd-gui.svg)](https://github.com/vortique/smd-gui/issues)

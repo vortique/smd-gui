@@ -167,7 +167,7 @@ downloadBtn.addEventListener("click", async () => {
       "error",
     );
     return;
-  } else if (downloadResult.message !== null) {
+  } else if (downloadResult.message) {
     showStatusWithTimeout(downloadResult.message, "info");
   }
 

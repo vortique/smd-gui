@@ -12,6 +12,13 @@ This project is under active development. The app uses track metadata from Spoti
 
 ---
 
+## Languages
+
+- [English](README.md)
+- [Turkish](README_TR.md)
+
+---
+
 **Why this project?**: It provides a lightweight, cross-platform desktop interface to fetch tracks by Spotify URL and download them using bundled `yt-dlp` binaries and `ffmpeg`. And most importantly, I will be using this program. So it should exist.
 
 **Status**: Early development — track/playlist/artist/album download supported, but program lacks of customization and error handling.
@@ -38,7 +45,8 @@ This project is under active development. The app uses track metadata from Spoti
 
 ## Features
 
-- **Single-track download**: Enter a Spotify track URL to fetch metadata and download a matching YouTube audio.
+- **Simple single-track download**: Enter a Spotify track URL to fetch metadata and download a matching YouTube audio.
+- **Playlist/Album/Artist download support**: Enter the Spotify URL of what you want to download, and download as many songs as you want by limiting download number.
 - **Bundled binaries**: Includes `yt-dlp` executables for each OS in `binaries/` to make running simpler.
 - **Audio conversion**: Uses `ffmpeg` (via `ffmpeg-static-electron`) to convert downloads to common audio formats.
 

@@ -4,7 +4,7 @@ import fsPromises from "fs/promises";
 import axios from "axios";
 import path from "path";
 
-import { getApiCredentials } from "../main.js";
+import { getOptions } from "../main.js";
 
 let configPath = path.join(app.getPath("userData"), "config.json");
 
@@ -25,7 +25,7 @@ const fetchUrl = (url) => {
  * @returns {Promise<Object>} Object with success status
  */
 export const requestAccessToken = async () => {
-  const credentials = await getApiCredentials();
+  const credentials = await getOptions();
   const url = "https://accounts.spotify.com/api/token";
 
   const authStr = `${credentials["client-id"]}:${credentials["client-secret"]}`;
@@ -45,7 +45,7 @@ export const requestAccessToken = async () => {
 
     if (response.status === 200) {
       const expiringDate = new Date(
-        Date.now() + 1 * 60 * 60 * 1000,
+        Date.now() + 1 * 60 * 60 * 1000
       ).toISOString();
 
       const accessToken = response.data["access_token"];
@@ -260,7 +260,7 @@ export const getArtistsTopTracks = async (id) => {
 
         track_artists = track_artists.substring(
           0,
-          track_artists.lastIndexOf(", "),
+          track_artists.lastIndexOf(", ")
         );
 
         const trackData = {
@@ -359,7 +359,7 @@ export const getPlaylistTracks = async (id) => {
 
           track_artists = track_artists.substring(
             0,
-            track_artists.lastIndexOf(", "),
+            track_artists.lastIndexOf(", ")
           );
 
           const trackData = {
@@ -416,7 +416,7 @@ export const getAlbumTracks = async (id) => {
 
           track_artists = track_artists.substring(
             0,
-            track_artists.lastIndexOf(", "),
+            track_artists.lastIndexOf(", ")
           );
 
           const trackData = {
@@ -478,11 +478,11 @@ export const getSpotifyInfo = async (url) => {
 
         track_artists = track_artists.substring(
           0,
-          track_artists.lastIndexOf(", "),
+          track_artists.lastIndexOf(", ")
         );
 
         const albumInfo = await getAlbumInfo(
-          response.data["album"]["external_urls"]["spotify"] || "",
+          response.data["album"]["external_urls"]["spotify"] || ""
         );
 
         const data = {
@@ -574,7 +574,7 @@ export const getSpotifyInfo = async (url) => {
 
           track_artists = track_artists.substring(
             0,
-            track_artists.lastIndexOf(", "),
+            track_artists.lastIndexOf(", ")
           );
 
           const trackData = {
@@ -634,7 +634,7 @@ export const getSpotifyInfo = async (url) => {
 
           track_artists = track_artists.substring(
             0,
-            track_artists.lastIndexOf(", "),
+            track_artists.lastIndexOf(", ")
           );
 
           const trackData = {

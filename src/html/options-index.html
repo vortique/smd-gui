@@ -1,5 +1,5 @@
-<!doctype html>
-<html lang="tr">
+<!DOCTYPE html>
+<html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -314,63 +314,161 @@
           font-size: 20px;
         }
       }
+      
+      .tabs {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 25px;
+        border-bottom: 2px solid var(--border);
+        padding-bottom: 10px;
+      }
+
+      .tab-btn {
+        background: none;
+        border: none;
+        padding: 10px 20px;
+        font-size: 16px;
+        font-weight: 600;
+        color: var(--text-secondary);
+        cursor: pointer;
+        border-radius: 8px;
+        transition: all 0.3s ease;
+      }
+
+      .tab-btn:hover {
+        color: var(--text-primary);
+        background: var(--bg-secondary);
+      }
+
+      .tab-btn.active {
+        color: var(--accent);
+        background: rgba(29, 185, 84, 0.1);
+      }
+
+      .tab-content {
+        display: none;
+        animation: fadeIn 0.3s ease;
+      }
+
+      .tab-content.active {
+        display: block;
+      }
+
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(10px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
     </style>
   </head>
   <body>
     <div class="settings-container">
       <div class="header">
-        <div class="header-icon">🔑</div>
-        <h1>Spotify API Options</h1>
-        <p class="subtitle">
-          Enter your Spotify API keys and start using program
-        </p>
+        <div class="header-icon">⚙️</div>
+        <h1>Settings</h1>
+        <p class="subtitle">Configure your application preferences</p>
       </div>
 
-      <div class="info-box">
-        <strong>📌 How to get API keys?</strong>
-        1. Go to
-        <a
-          href="https://developer.spotify.com/dashboard"
-          target="_blank"
-          class="help-link"
-          >Spotify Developer Dashboard</a
-        ><br />
-        2. Create a new application<br />
-        3. Copy & paste Client ID and Client Secret
+      <div class="tabs">
+        <button class="tab-btn active" data-tab="api-settings">
+          API Settings
+        </button>
+        <button class="tab-btn" data-tab="user-settings">User Settings</button>
       </div>
 
       <form id="settingsForm">
-        <div class="form-group">
-          <label class="form-label" for="clientId">Client ID</label>
-          <div class="input-wrapper">
-            <input
-              type="text"
-              id="clientId"
-              class="form-input"
-              placeholder="Örn: 1a2b3c4d5e6f7g8h9i0j..."
-              required
-            />
+        <!-- API Settings Tab -->
+        <div class="tab-content active" id="api-settings">
+          <div class="info-box">
+            <strong>📌 How to get API keys?</strong>
+            1. Go to
+            <a
+              href="https://developer.spotify.com/dashboard"
+              target="_blank"
+              class="help-link"
+              >Spotify Developer Dashboard</a
+            ><br />
+            2. Create a new application<br />
+            3. Copy & paste Client ID and Client Secret
           </div>
-          <div class="help-text">
-            💡 Client ID you get from Spotify Dashboard
+
+          <div class="form-group">
+            <label class="form-label" for="clientId">Client ID</label>
+            <div class="input-wrapper">
+              <input
+                type="text"
+                id="clientId"
+                class="form-input"
+                placeholder="Örn: 1a2b3c4d5e6f7g8h9i0j..."
+                required
+              />
+            </div>
+            <div class="help-text">
+              💡 Client ID you get from Spotify Dashboard
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="clientSecret">Client Secret</label>
+            <div class="input-wrapper">
+              <input
+                type="password"
+                id="clientSecret"
+                class="form-input"
+                placeholder="Örn: a1b2c3d4e5f6g7h8i9j0..."
+                required
+              />
+              <button type="button" class="toggle-password" id="toggleSecret">
+                👁️
+              </button>
+            </div>
+            <div class="help-text">🔒 Do not share your Client Secret</div>
           </div>
         </div>
 
-        <div class="form-group">
-          <label class="form-label" for="clientSecret">Client Secret</label>
-          <div class="input-wrapper">
-            <input
-              type="password"
-              id="clientSecret"
-              class="form-input"
-              placeholder="Örn: a1b2c3d4e5f6g7h8i9j0..."
-              required
-            />
-            <button type="button" class="toggle-password" id="toggleSecret">
-              👁️
-            </button>
+        <!-- User Settings Tab -->
+        <div class="tab-content" id="user-settings">
+          <div class="form-group">
+            <label class="form-label" for="customTrackPath"
+              >Custom Track Save Path</label
+            >
+            <div class="input-wrapper">
+              <input
+                type="text"
+                id="customTrackPath"
+                class="form-input"
+                placeholder="~/Music/smd-gui-downloads"
+              />
+            </div>
+            <div class="help-text">
+              📂 Folder where tracks will be saved (Leave empty for default)
+            </div>
           </div>
-          <div class="help-text">🔒 Do not share your Client Secret</div>
+
+          <div class="form-group">
+            <label class="form-label" for="ytDlpSearchCount"
+              >YT-DLP Search Count</label
+            >
+            <div class="input-wrapper">
+              <input
+                type="number"
+                id="ytDlpSearchCount"
+                class="form-input"
+                placeholder="3"
+                min="1"
+                max="10"
+                value="3"
+              />
+            </div>
+            <div class="help-text">
+              🔍 Number of results to search for each track
+            </div>
+          </div>
         </div>
 
         <div class="button-group">
@@ -378,7 +476,7 @@
             Cancel
           </button>
           <button type="submit" class="btn btn-primary" id="saveBtn">
-            💾 Save
+            💾 Save Settings
           </button>
         </div>
 

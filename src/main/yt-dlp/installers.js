@@ -67,30 +67,30 @@ const searchSong = async (songName, searchCount = 3) => {
   }
 };
 
-export const downloadSong = async (songName, outputPath) => {
+export const downloadSong = async (songName, outputPath, searchCount = 3) => {
   try {
     console.log(
       `[downloadSong] songName type: ${typeof songName}, value:`,
-      songName,
+      songName
     );
     console.log(
       `[downloadSong] outputPath type: ${typeof outputPath}, value:`,
-      outputPath,
+      outputPath
     );
 
     // Ensure songName is a string
     if (typeof songName !== "string") {
       throw new Error(
-        `Invalid songName: expected string, got ${typeof songName}`,
+        `Invalid songName: expected string, got ${typeof songName}`
       );
     }
     if (typeof outputPath !== "string") {
       throw new Error(
-        `Invalid outputPath: expected string, got ${typeof outputPath}`,
+        `Invalid outputPath: expected string, got ${typeof outputPath}`
       );
     }
 
-    const searchResult = await searchSong(songName);
+    const searchResult = await searchSong(songName, searchCount);
 
     console.log(searchResult);
 
@@ -130,7 +130,7 @@ export const downloadSong = async (songName, outputPath) => {
 
     const convertingResult = await convertVideoToM4A(
       tempVideoPath,
-      outputFilePath,
+      outputFilePath
     );
 
     // Remove temporary video file regardless of result

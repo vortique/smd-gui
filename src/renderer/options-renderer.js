@@ -25,10 +25,27 @@ window
 const settingsForm = document.getElementById("settingsForm");
 const clientIdInput = document.getElementById("clientId");
 const clientSecretInput = document.getElementById("clientSecret");
+const customTrackPathInput = document.getElementById("customTrackPath");
+const ytDlpSearchCountInput = document.getElementById("ytDlpSearchCount");
 const toggleSecretBtn = document.getElementById("toggleSecret");
 const saveBtn = document.getElementById("saveBtn");
 const cancelBtn = document.getElementById("cancelBtn");
 const statusMessage = document.getElementById("statusMessage");
+
+// Tab switching logic
+const tabBtns = document.querySelectorAll(".tab-btn");
+const tabContents = document.querySelectorAll(".tab-content");
+
+tabBtns.forEach((btn) => {
+  btn.addEventListener("click", () => {
+    tabBtns.forEach((b) => b.classList.remove("active"));
+    tabContents.forEach((c) => c.classList.remove("active"));
+
+    btn.classList.add("active");
+    const tabId = btn.getAttribute("data-tab");
+    document.getElementById(tabId).classList.add("active");
+  });
+});
 
 // Show/Hide password
 toggleSecretBtn.addEventListener("click", () => {
@@ -53,6 +70,8 @@ settingsForm.addEventListener("submit", async (e) => {
 
   const clientId = clientIdInput.value.trim();
   const clientSecret = clientSecretInput.value.trim();
+  const customTrackPath = customTrackPathInput.value.trim();
+  const ytDlpSearchCount = parseInt(ytDlpSearchCountInput.value);
 
   // Validation
   if (!clientId || !clientSecret) {
@@ -73,12 +92,14 @@ settingsForm.addEventListener("submit", async (e) => {
     const result = await window.electronAPI.saveSettings(
       clientId,
       clientSecret,
+      customTrackPath,
+      ytDlpSearchCount
     );
 
     if (result.success) {
-      showStatus("✅ API information's is saved successfully!", "success");
+      showStatus("✅ Settings saved successfully!", "success");
     } else {
-      showStatus("❌ Error while saving options!", "success");
+      showStatus("❌ Error while saving options!", "error");
       return;
     }
 
@@ -88,11 +109,11 @@ settingsForm.addEventListener("submit", async (e) => {
       console.log("Options set, window is closing...");
     }, 1500);
   } catch (error) {
-    showStatus("❌ Error while saving keys!", "error");
+    showStatus("❌ Error while saving settings!", "error");
     console.error("Error:", error);
   } finally {
     saveBtn.disabled = false;
-    saveBtn.textContent = "💾 Save";
+    saveBtn.textContent = "💾 Save Settings";
   }
 });
 
@@ -105,10 +126,12 @@ cancelBtn.addEventListener("click", () => {
 // Load saved settings (if there)
 window.addEventListener("DOMContentLoaded", async () => {
   try {
-    const credentials = await window.electronAPI.getApiCredentials();
-    if (credentials !== null) {
-      clientIdInput.value = credentials["client-id"] || "";
-      clientSecretInput.value = credentials["client-secret"] || "";
+    const options = await window.electronAPI.getOptions();
+    if (options !== null) {
+      clientIdInput.value = options["client-id"] || "";
+      clientSecretInput.value = options["client-secret"] || "";
+      customTrackPathInput.value = options["custom-track-path"] || "";
+      ytDlpSearchCountInput.value = options["yt-dlp-search-count"] || 3;
     }
   } catch (error) {
     console.error("Saved options cannot be extracted:", error);

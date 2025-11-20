@@ -127,7 +127,7 @@ downloadBtn.addEventListener("click", async () => {
 
     showStatusWithTimeout(
       `Error while getting info of URL. Error Message: ${spotifyInfo.message}`,
-      "error",
+      "error"
     );
     return;
   }
@@ -148,14 +148,14 @@ downloadBtn.addEventListener("click", async () => {
 
     showStatusWithTimeout(
       "Please enter number for limiting track download count!",
-      "error",
+      "error"
     );
     return;
   }
 
   const downloadResult = await window.electronAPI.downloadSong(
     spotifyInfo,
-    downloadCount,
+    downloadCount
   );
 
   if (!downloadResult.success) {
@@ -164,7 +164,7 @@ downloadBtn.addEventListener("click", async () => {
 
     showStatusWithTimeout(
       `Error while downloading song! Error Message: ${downloadResult.message}`,
-      "error",
+      "error"
     );
     return;
   } else if (downloadResult.message) {
@@ -239,7 +239,7 @@ function showPlaylistInfo(data) {
         <div class="info-track-artist">${track.artist}</div>
       </div>
     </div>
-  `,
+  `
     )
     .join("");
 
@@ -283,7 +283,7 @@ function showArtistInfo(data) {
         <div class="info-track-artist">${track.album}</div>
       </div>
     </div>
-  `,
+  `
         )
         .join("")
     : "";
@@ -302,7 +302,7 @@ function showArtistInfo(data) {
           margin: 4px;
           color: var(--text-primary);
         ">${genre}</span>
-      `,
+      `
           )
           .join("")
       : '<span style="color: var(--text-secondary); font-size: 14px;">No genre information</span>';
@@ -320,7 +320,7 @@ function showArtistInfo(data) {
       ${
         data.followers
           ? `<p class="info-subtitle">${formatNumber(
-              data.followers,
+              data.followers
             )} followers</p>`
           : ""
       }
@@ -396,7 +396,7 @@ function showAlbumInfo(data) {
         <div class="info-track-artist">${track.artist}</div>
       </div>
     </div>
-  `,
+  `
         )
         .join("")
     : "";
@@ -468,11 +468,16 @@ function showInfoLoading() {
 document.getElementById("spotifyUrl").addEventListener("input", async (e) => {
   url = e.target.value.trim();
 
-  const apiCredentials = await window.electronAPI.getApiCredentials();
-  if (!apiCredentials) {
+  const options = await window.electronAPI.getOptions();
+  if (
+    options["client-id"] === null ||
+    options["client-id"] === "" ||
+    options["client-secret"] === null ||
+    options["client-secret"] === ""
+  ) {
     showStatusWithTimeout(
       "Please enter your CLIENT ID and CLIENT SECRET from Settings tab.",
-      "error",
+      "error"
     );
     closeInfoPanel();
     return;

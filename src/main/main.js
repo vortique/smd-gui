@@ -3,7 +3,6 @@ import { app, BrowserWindow, ipcMain, Menu } from "electron";
 import { EventEmitter } from "events";
 import path from "path";
 import fsPromises from "fs/promises";
-import axios from "axios";
 
 import { fileURLToPath } from "url";
 const __filename = fileURLToPath(import.meta.url);
@@ -63,11 +62,24 @@ const closeSettingsWindow = () => {
 
 const wait = (ms) => new Promise((res) => setTimeout(res, ms));
 
-const saveOptions = async (clientId, clientSecret) => {
+const saveOptions = async (
+  clientId,
+  clientSecret,
+  customTrackPath,
+  ytDlpSearchCount
+) => {
   try {
     await fsPromises.mkdir(path.dirname(configPath), { recursive: true });
-    const apiKeys = { "client-id": clientId, "client-secret": clientSecret };
-    await fsPromises.writeFile(configPath, JSON.stringify(apiKeys, null, 2), {
+    const options = {
+      "client-id": clientId,
+      "client-secret": clientSecret,
+      "custom-track-path": customTrackPath,
+      "yt-dlp-search-count": ytDlpSearchCount,
+    };
+
+    console.log(options);
+
+    await fsPromises.writeFile(configPath, JSON.stringify(options, null, 2), {
       encoding: "utf8",
     });
     return { success: true };
@@ -77,7 +89,7 @@ const saveOptions = async (clientId, clientSecret) => {
   }
 };
 
-export const getApiCredentials = async () => {
+export const getOptions = async () => {
   try {
     let jsonString = await fsPromises.readFile(configPath, {
       encoding: "utf8",
@@ -90,7 +102,7 @@ export const getApiCredentials = async () => {
     const data = JSON.parse(jsonString);
     return data;
   } catch (err) {
-    console.error("getApiCredentials error:", err);
+    console.error("getOptions error:", err);
     return null;
   }
 };
@@ -150,7 +162,25 @@ class SpotifySongDownloader extends EventEmitter {
 
     this.songDownloadStart(songQuery);
 
-    const downloadResult = await downloadSong(songQuery, app.getPath("music"));
+    const options = await getOptions();
+
+    if (options["custom-track-path"] !== null || options["custom-track-path"] !== "") {
+      customTrackPath = options["custom-track-path"];
+    } else {
+      customTrackPath = app.getPath("music");
+    }
+
+    if (options["yt-dlp-search-count"] !== null) {
+      ytDlpSearchCount = options["yt-dlp-search-count"];
+    } else {
+      ytDlpSearchCount = 3;
+    }
+
+    const downloadResult = await downloadSong(
+      songQuery,
+      customTrackPath,
+      ytDlpSearchCount
+    );
 
     if (downloadResult.success === true) {
       this.songDownloadDone();
@@ -388,23 +418,28 @@ app.whenReady().then(async () => {
   ipcMain.handle("close-settings-window", () => closeSettingsWindow());
   ipcMain.handle(
     "save-settings",
-    async (_event, clientId, clientSecret) =>
-      await saveOptions(clientId, clientSecret),
+    async (_event, clientId, clientSecret, customTrackPath, ytDlpSearchCount) =>
+      await saveOptions(
+        clientId,
+        clientSecret,
+        customTrackPath,
+        ytDlpSearchCount
+      )
   );
-  ipcMain.handle("get-api-credentials", async () => await getApiCredentials());
+  ipcMain.handle("get-options", async () => await getOptions());
   ipcMain.handle(
     "request-access-token",
-    async () => await requestAccessToken(),
+    async () => await requestAccessToken()
   );
   ipcMain.handle("get-access-token", async () => await getAccessToken());
   ipcMain.handle(
     "get-spotify-info",
-    async (_event, url) => await getSpotifyInfo(url),
+    async (_event, url) => await getSpotifyInfo(url)
   );
   ipcMain.handle(
     "download-song",
     async (_event, spotifyInfo, count) =>
-      await downloader.downloadSongFromUrl(spotifyInfo, count),
+      await downloader.downloadSongFromUrl(spotifyInfo, count)
   );
 
   downloader.on("songDownloadStart", (songName) => {
@@ -424,7 +459,23 @@ app.whenReady().then(async () => {
   try {
     await fsPromises.access(configPath);
   } catch {
-    await fsPromises.writeFile(configPath, "", { encoding: "utf8" });
+    const jsonString = JSON.stringify({
+      "client-id": "",
+      "client-secret": "",
+      "custom-track-path": path.join(app.getPath("music"), "smd-gui-downloads"),
+      "yt-dlp-search-count": 3,
+    }, null, 2)
+    
+    await fsPromises.writeFile(configPath, jsonString, { encoding: "utf8" });
+  }
+
+  try {
+    await fsPromises.mkdir(
+      path.join(app.getPath("music"), "smd-gui-downloads"),
+      { recursive: true }
+    );
+  } catch {
+    console.log("Music downloads directory already exists.");
   }
 
   createWindow();

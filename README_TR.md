@@ -56,7 +56,7 @@ Bu proje aktif geliştirme aşamasındadır. Uygulama, Spotify'dan parça meta v
 - [x] Çalma listesi indirme
 - [x] Albüm indirme
 - [x] Sanatçı parçaları indirme
-- [ ] Özel indirme dizini
+- [x] Özel indirme dizini
 - [ ] İndirme kuyruğu
 - [ ] Çoklu format dışa aktarma
 - [ ] Youtube Music desteği (belki)

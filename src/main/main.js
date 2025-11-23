@@ -3,6 +3,7 @@ import { app, BrowserWindow, ipcMain, Menu } from "electron";
 import { EventEmitter } from "events";
 import path from "path";
 import fsPromises from "fs/promises";
+import pLimit from "p-limit";
 
 import { fileURLToPath } from "url";
 const __filename = fileURLToPath(import.meta.url);
@@ -160,8 +161,6 @@ class SpotifySongDownloader extends EventEmitter {
     console.log("[songDownload] Query:", songQuery);
     console.log("[songDownload] Music path:", app.getPath("music"));
 
-    this.songDownloadStart(songQuery);
-
     const options = await getOptions();
 
     let customTrackPath = app.getPath("music");
@@ -199,6 +198,8 @@ class SpotifySongDownloader extends EventEmitter {
   async downloadTrack(spotifyInfo, count) {
     console.log(spotifyInfo);
 
+    this.songDownloadStart(songQuery);
+
     let downloadResult = await this.songDownload(spotifyInfo);
 
     if (downloadResult.success === false) {
@@ -209,6 +210,7 @@ class SpotifySongDownloader extends EventEmitter {
       }
     }
 
+    this.songDownloadDone();
     return { success: true };
   }
 
@@ -239,25 +241,37 @@ class SpotifySongDownloader extends EventEmitter {
       count = playlistTracks.result.length;
     }
 
+    // TODO : Make this can be set from settings
+    const MAX_CONCURRENT = 3;
+    const limit = pLimit(MAX_CONCURRENT);
+
     let downloadedTracks = 0;
 
-    for (const track of playlistTracks.result) {
-      let downloadResult = await this.songDownload(track);
+    const tracksToDownload = playlistTracks.result.slice(0, count);
 
-      if (downloadResult.success === false) {
-        // Try again if download failed
-        downloadResult = await this.retryDownload(track);
+    await Promise.all(
+      tracksToDownload.map(track => {
+        limit(async () => {
+          let downloadResult = await this.songDownload(track);
 
-        if (downloadResult.success === false) {
-          continue;
-        }
-      }
+          if (downloadResult.success === false) {
+            // Try again if download failed
+            downloadResult = await this.retryDownload(track);
 
-      downloadedTracks++;
+            if (downloadResult.success === true) {
+              downloadedTracks++;
+            }
+          } else {
+            downloadedTracks++;
+          }
 
-      if (downloadedTracks === count) {
-        break;
-      }
+          this.setDownloadStatus(`Downloading songs... (${downloadedTracks}/${count})`);
+        })
+      })
+    )
+
+    if (downloadedTracks !== count) {
+      return { success: true, message: "Some songs may not be downloaded." };
     }
 
     return { success: true };
@@ -292,25 +306,37 @@ class SpotifySongDownloader extends EventEmitter {
 
     console.log(count);
 
+    // TODO : Make this can be set from settings
+    const MAX_CONCURRENT = 3;
+    const limit = pLimit(MAX_CONCURRENT);
+
     let downloadedTracks = 0;
 
-    for (const track of albumTracks.result) {
-      let downloadResult = await this.songDownload(track);
+    const tracksToDownload = albumTracks.result.slice(0, count);
 
-      if (downloadResult.success === false) {
-        // Try again if download failed
-        downloadResult = await this.retryDownload(track);
+    await Promise.all(
+      tracksToDownload.map(track => {
+        limit(async () => {
+          let downloadResult = await this.songDownload(track);
 
-        if (downloadResult.success === false) {
-          continue;
-        }
-      }
+          if (downloadResult.success === false) {
+            // Try again if download failed
+            downloadResult = await this.retryDownload(track);
 
-      downloadedTracks++;
+            if (downloadResult.success === true) {
+              downloadedTracks++;
+            }
+          } else {
+            downloadedTracks++;
+          }
 
-      if (downloadedTracks === count) {
-        break;
-      }
+          this.setDownloadStatus(`Downloading songs... (${downloadedTracks}/${count})`);
+        })
+      })
+    )
+
+    if (downloadedTracks !== count) {
+      return { success: true, message: "Some songs may not be downloaded." };
     }
 
     return { success: true };
@@ -341,25 +367,37 @@ class SpotifySongDownloader extends EventEmitter {
       count = artistTopTracks.result.length;
     }
 
+    // TODO : Make this can be set from settings
+    const MAX_CONCURRENT = 3;
+    const limit = pLimit(MAX_CONCURRENT);
+
     let downloadedTracks = 0;
 
-    for (const track of artistTopTracks.result) {
-      let downloadResult = await this.songDownload(track);
+    const tracksToDownload = artistTopTracks.result.slice(0, count);
 
-      if (downloadResult.success === false) {
-        // Try again if download failed
-        downloadResult = await this.retryDownload(track);
+    await Promise.all(
+      tracksToDownload.map(track => {
+        limit(async () => {
+          let downloadResult = await this.songDownload(track);
 
-        if (downloadResult.success === false) {
-          continue;
-        }
-      }
+          if (downloadResult.success === false) {
+            // Try again if download failed
+            downloadResult = await this.retryDownload(track);
 
-      downloadedTracks++;
+            if (downloadResult.success === true) {
+              downloadedTracks++;
+            }
+          } else {
+            downloadedTracks++;
+          }
 
-      if (downloadedTracks === count) {
-        break;
-      }
+          this.setDownloadStatus(`Downloading songs... (${downloadedTracks}/${count})`);
+        })
+      })
+    )
+
+    if (downloadedTracks !== count) {
+      return { success: true, message: "Some songs may not be downloaded." };
     }
 
     return { success: true };

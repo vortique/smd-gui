@@ -164,16 +164,16 @@ class SpotifySongDownloader extends EventEmitter {
 
     const options = await getOptions();
 
+    let customTrackPath = app.getPath("music");
+
     if (options["custom-track-path"] !== null || options["custom-track-path"] !== "") {
       customTrackPath = options["custom-track-path"];
-    } else {
-      customTrackPath = app.getPath("music");
     }
+
+    let ytDlpSearchCount = 3;
 
     if (options["yt-dlp-search-count"] !== null) {
       ytDlpSearchCount = options["yt-dlp-search-count"];
-    } else {
-      ytDlpSearchCount = 3;
     }
 
     const downloadResult = await downloadSong(

@@ -13,6 +13,7 @@
   "build": {
     "appId": "com.vortique.smd-gui",
     "productName": "SMD GUI",
+    "asar": true,
     "asarUnpack": [
       "**/ffmpeg-static-electron/bin/**"
     ],
@@ -30,7 +31,25 @@
       }
     ],
     "win": {
-      "target": "nsis"
+      "target": [
+        "nsis"
+      ]
+    },
+    "linux": {
+      "target": [
+        "AppImage",
+        "deb",
+        "rpm"
+      ],
+      "category": "Utility"
+    },
+    "mac": {
+      "target": [
+        "dmg",
+        "zip"
+      ],
+      "category": "public.app-category.utilities",
+      "hardenedRuntime": true
     },
     "nsis": {
       "oneClick": false,

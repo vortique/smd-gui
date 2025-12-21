@@ -8,18 +8,24 @@ import logger from "../../shared/logger.js";
  * @returns {string} Path of the FFmpeg binary.
  */
 const getFfmpegBinary = () => {
+  let binaryPath = "";
+
   try {
     // Quick checks for common shapes
-    if (typeof ffmpegPathDefault === "string") return ffmpegPathDefault;
-    if (ffmpegPathDefault && typeof ffmpegPathDefault.default === "string")
-      return ffmpegPathDefault.default;
-    if (ffmpegPathDefault && typeof ffmpegPathDefault.path === "string")
-      return ffmpegPathDefault.path;
-    if (ffmpegPathDefault && typeof ffmpegPathDefault.ffmpeg === "string")
-      return ffmpegPathDefault.ffmpeg;
+    if (typeof ffmpegPathDefault === "string") binaryPath = ffmpegPathDefault;
+    else if (ffmpegPathDefault && typeof ffmpegPathDefault.default === "string")
+      binaryPath = ffmpegPathDefault.default;
+    else if (ffmpegPathDefault && typeof ffmpegPathDefault.path === "string")
+      binaryPath = ffmpegPathDefault.path;
+    else if (ffmpegPathDefault && typeof ffmpegPathDefault.ffmpeg === "string")
+      binaryPath = ffmpegPathDefault.ffmpeg;
 
     // If it's an object, try to find the first string value anywhere inside it
-    if (ffmpegPathDefault && typeof ffmpegPathDefault === "object") {
+    if (
+      !binaryPath &&
+      ffmpegPathDefault &&
+      typeof ffmpegPathDefault === "object"
+    ) {
       const stack = [ffmpegPathDefault];
       const visited = new Set();
       while (stack.length) {
@@ -27,15 +33,24 @@ const getFfmpegBinary = () => {
         if (!obj || visited.has(obj)) continue;
         visited.add(obj);
         for (const val of Object.values(obj)) {
-          if (typeof val === "string") return val;
+          if (typeof val === "string") {
+            binaryPath = val;
+            break;
+          }
           if (val && typeof val === "object") stack.push(val);
         }
+        if (binaryPath) break;
       }
     }
   } catch (e) {
     logger.error(
       `[getFfmpegBinary] error while inspecting ffmpegPathDefault: ${e}`
     );
+  }
+
+  if (binaryPath) {
+    // Fix for asar unpacking
+    return binaryPath.replace("app.asar", "app.asar.unpacked");
   }
 
   // Last-resort fallback to system ffmpeg binary name (may not exist)

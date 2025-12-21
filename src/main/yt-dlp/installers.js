@@ -147,7 +147,7 @@ export const downloadSong = async (songName, outputPath, searchCount = 3) => {
       return { success: false, message: convertingResult.message };
     }
   } catch (err) {
-    logger.error(`Download song error: ${err}`);
+    logger.error("Download song error:", err);
     return { success: false, message: String(err) };
   }
 };

@@ -14,7 +14,7 @@
     "appId": "com.vortique.smd-gui",
     "productName": "SMD GUI",
     "asarUnpack": [
-      "node_modules/ffmpeg-static-electron/**/*"
+      "**/ffmpeg-static-electron/bin/**"
     ],
     "directories": {
       "output": "dist"

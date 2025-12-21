@@ -68,6 +68,15 @@ This project is under active development. The app uses track metadata from Spoti
 
 ## Installation
 
+### 1. Install from releases:
+
+- **Windows**: Download `SMD-GUI-Setup-v1.0.0-win.exe` from [releases](https://github.com/vortique/smd-gui/releases).
+- **Linux**: Download `SMD-GUI-v1.0.0.AppImage` from [releases](https://github.com/vortique/smd-gui/releases).
+
+And run the binary.
+
+### 2. Or install from source:
+
 Clone the repo and install dependencies:
 
 ```bash
@@ -86,7 +95,7 @@ The `start` script runs `electron .` (see `package.json`).
 
 ## Usage
 
-- Launch the app with `npm start`.
+- Launch the app with `npm start` or run the binary installed from releases.
 - Paste a Spotify track URL into the GUI input and submit.
 - The app will search YouTube (via `yt-dlp`) for the best matching result, download the video, and convert it to audio.
 - Downloaded files and temporary files location depends on OS; temporary files goes to your OS's temp file directory and Downloaded songs goes to your OS's musics directory (for now).

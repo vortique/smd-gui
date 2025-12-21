@@ -522,7 +522,7 @@ export const getSpotifyInfo = async (url) => {
       const response = await axios.get(apiUrl, { headers });
 
       if (response.status === 200) {
-        const artistName = response["name"];
+        const artistName = response.data["name"];
         const topTracksResp = await getArtistsTopTracks(id, artistName);
 
         if (topTracksResp.success === false) {

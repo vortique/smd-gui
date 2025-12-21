@@ -1,6 +1,7 @@
 import { spawn } from "child_process";
 import fs from "fs";
 import ffmpegPathDefault from "ffmpeg-static-electron";
+import logger from "../../shared/logger.js";
 
 /**
  * Gets path of the FFmpeg from ffmpeg-static-electron. Fall-back is system's FFmpeg.
@@ -32,15 +33,14 @@ const getFfmpegBinary = () => {
       }
     }
   } catch (e) {
-    console.error(
-      "[getFfmpegBinary] error while inspecting ffmpegPathDefault:",
-      e,
+    logger.error(
+      `[getFfmpegBinary] error while inspecting ffmpegPathDefault: ${e}`
     );
   }
 
   // Last-resort fallback to system ffmpeg binary name (may not exist)
-  console.warn(
-    "[getFfmpegBinary] ffmpeg-static-electron did not provide a path; falling back to 'ffmpeg' in PATH",
+  logger.warn(
+    "[getFfmpegBinary] ffmpeg-static-electron did not provide a path; falling back to 'ffmpeg' in PATH"
   );
   return "ffmpeg";
 };
@@ -72,11 +72,8 @@ export const convertVideoToM4A = (inputPath, outputPath) => {
     }
 
     const ffmpegBinary = getFfmpegBinary();
-    console.log(
-      "[convertVideoToM4A] ffmpegBinary type:",
-      typeof ffmpegBinary,
-      "value:",
-      ffmpegBinary,
+    logger.info(
+      `[convertVideoToM4A] ffmpegBinary type: ${typeof ffmpegBinary} value: ${ffmpegBinary}`
     );
 
     if (!ffmpegBinary) {
@@ -106,11 +103,11 @@ export const convertVideoToM4A = (inputPath, outputPath) => {
     const ffmpeg = spawn(ffmpegBinary, args);
 
     ffmpeg.stdout.on("data", (data) => {
-      console.log("FFmpeg stdout:", data.toString());
+      logger.info(`FFmpeg stdout: ${data.toString()}`);
     });
 
     ffmpeg.stderr.on("data", (data) => {
-      console.log("FFmpeg stderr:", data.toString());
+      logger.info(`FFmpeg stderr: ${data.toString()}`);
     });
 
     ffmpeg.on("close", (code) => {

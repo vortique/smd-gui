@@ -9,6 +9,8 @@ import { fileURLToPath } from "url";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+import logger from "../shared/logger.js";
+
 import { updateYtDlp, downloadSong } from "./yt-dlp/installers.js";
 import {
   requestAccessToken,
@@ -78,14 +80,14 @@ const saveOptions = async (
       "yt-dlp-search-count": ytDlpSearchCount,
     };
 
-    console.log(options);
+    logger.info(JSON.stringify(options));
 
     await fsPromises.writeFile(configPath, JSON.stringify(options, null, 2), {
       encoding: "utf8",
     });
     return { success: true };
   } catch (err) {
-    console.error(err);
+    logger.error(err);
     return { success: false };
   }
 };
@@ -103,7 +105,7 @@ export const getOptions = async () => {
     const data = JSON.parse(jsonString);
     return data;
   } catch (err) {
-    console.error("getOptions error:", err);
+    logger.error(`getOptions error: ${err}`);
     return null;
   }
 };
@@ -145,7 +147,7 @@ class SpotifySongDownloader extends EventEmitter {
    * @returns {Promise<Object>} Download result
    */
   async retryDownload(track) {
-    console.log(`[Retry] Attempting to download: ${track.name}`);
+    logger.info(`[Retry] Attempting to download: ${track.name}`);
     return await this.songDownload(track);
   }
 
@@ -158,14 +160,17 @@ class SpotifySongDownloader extends EventEmitter {
     const artistStr = this.ensureArtistString(trackInfo.artist);
     const songQuery = `${trackInfo.name} ${artistStr}`;
 
-    console.log("[songDownload] Query:", songQuery);
-    console.log("[songDownload] Music path:", app.getPath("music"));
+    logger.info(`[songDownload] Query: ${songQuery}`);
+    logger.info(`[songDownload] Music path: ${app.getPath("music")}`);
 
     const options = await getOptions();
 
     let customTrackPath = app.getPath("music");
 
-    if (options["custom-track-path"] !== null || options["custom-track-path"] !== "") {
+    if (
+      options["custom-track-path"] !== null ||
+      options["custom-track-path"] !== ""
+    ) {
       customTrackPath = options["custom-track-path"];
     }
 
@@ -195,10 +200,10 @@ class SpotifySongDownloader extends EventEmitter {
    * @param {Object} spotifyInfo - Spotify track information
    * @returns {Promise<Object>} Success status and optional error message
    */
-  async downloadTrack(spotifyInfo, count) {
-    console.log(spotifyInfo);
+  async downloadTrack(spotifyInfo) {
+    logger.info(JSON.stringify(spotifyInfo));
 
-    this.songDownloadStart(songQuery);
+    this.songDownloadStart(spotifyInfo.name);
 
     let downloadResult = await this.songDownload(spotifyInfo);
 
@@ -250,7 +255,7 @@ class SpotifySongDownloader extends EventEmitter {
     const tracksToDownload = playlistTracks.result.slice(0, count);
 
     await Promise.all(
-      tracksToDownload.map(track => {
+      tracksToDownload.map((track) => {
         limit(async () => {
           let downloadResult = await this.songDownload(track);
 
@@ -265,10 +270,12 @@ class SpotifySongDownloader extends EventEmitter {
             downloadedTracks++;
           }
 
-          this.setDownloadStatus(`Downloading songs... (${downloadedTracks}/${count})`);
-        })
+          this.setDownloadStatus(
+            `Downloading songs... (${downloadedTracks}/${count})`
+          );
+        });
       })
-    )
+    );
 
     if (downloadedTracks !== count) {
       return { success: true, message: "Some songs may not be downloaded." };
@@ -304,7 +311,7 @@ class SpotifySongDownloader extends EventEmitter {
       count = albumTracks.result.length;
     }
 
-    console.log(count);
+    logger.info(count);
 
     // TODO : Make this can be set from settings
     const MAX_CONCURRENT = 3;
@@ -315,7 +322,7 @@ class SpotifySongDownloader extends EventEmitter {
     const tracksToDownload = albumTracks.result.slice(0, count);
 
     await Promise.all(
-      tracksToDownload.map(track => {
+      tracksToDownload.map((track) => {
         limit(async () => {
           let downloadResult = await this.songDownload(track);
 
@@ -330,10 +337,12 @@ class SpotifySongDownloader extends EventEmitter {
             downloadedTracks++;
           }
 
-          this.setDownloadStatus(`Downloading songs... (${downloadedTracks}/${count})`);
-        })
+          this.setDownloadStatus(
+            `Downloading songs... (${downloadedTracks}/${count})`
+          );
+        });
       })
-    )
+    );
 
     if (downloadedTracks !== count) {
       return { success: true, message: "Some songs may not be downloaded." };
@@ -376,7 +385,7 @@ class SpotifySongDownloader extends EventEmitter {
     const tracksToDownload = artistTopTracks.result.slice(0, count);
 
     await Promise.all(
-      tracksToDownload.map(track => {
+      tracksToDownload.map((track) => {
         limit(async () => {
           let downloadResult = await this.songDownload(track);
 
@@ -391,10 +400,12 @@ class SpotifySongDownloader extends EventEmitter {
             downloadedTracks++;
           }
 
-          this.setDownloadStatus(`Downloading songs... (${downloadedTracks}/${count})`);
-        })
+          this.setDownloadStatus(
+            `Downloading songs... (${downloadedTracks}/${count})`
+          );
+        });
       })
-    )
+    );
 
     if (downloadedTracks !== count) {
       return { success: true, message: "Some songs may not be downloaded." };
@@ -413,8 +424,12 @@ class SpotifySongDownloader extends EventEmitter {
    */
   async downloadSongFromUrl(spotifyInfo, count) {
     try {
-      console.log("[downloadSongFromUrl] spotifyInfo:", spotifyInfo);
-      console.log("[downloadSongFromUrl] spotifyInfo.type:", spotifyInfo.type);
+      logger.info(
+        `[downloadSongFromUrl] spotifyInfo: ${JSON.stringify(spotifyInfo)}`
+      );
+      logger.info(
+        `[downloadSongFromUrl] spotifyInfo.type: ${spotifyInfo.type}`
+      );
 
       // Update yt-dlp binary
       const updateResult = await updateYtDlp();
@@ -443,7 +458,7 @@ class SpotifySongDownloader extends EventEmitter {
           };
       }
     } catch (err) {
-      console.error("[downloadSongFromUrl] error:", err);
+      logger.error(`[downloadSongFromUrl] error: ${err}`);
       return { success: false, message: String(err) };
     }
   }
@@ -497,13 +512,20 @@ app.whenReady().then(async () => {
   try {
     await fsPromises.access(configPath);
   } catch {
-    const jsonString = JSON.stringify({
-      "client-id": "",
-      "client-secret": "",
-      "custom-track-path": path.join(app.getPath("music"), "smd-gui-downloads"),
-      "yt-dlp-search-count": 3,
-    }, null, 2)
-    
+    const jsonString = JSON.stringify(
+      {
+        "client-id": "",
+        "client-secret": "",
+        "custom-track-path": path.join(
+          app.getPath("music"),
+          "smd-gui-downloads"
+        ),
+        "yt-dlp-search-count": 3,
+      },
+      null,
+      2
+    );
+
     await fsPromises.writeFile(configPath, jsonString, { encoding: "utf8" });
   }
 
@@ -513,10 +535,11 @@ app.whenReady().then(async () => {
       { recursive: true }
     );
   } catch {
-    console.log("Music downloads directory already exists.");
+    logger.info("Music downloads directory already exists.");
   }
 
   createWindow();
+  logger.info("Application starting...");
 
   app.on("activate", () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow();

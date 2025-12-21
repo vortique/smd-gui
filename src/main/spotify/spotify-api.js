@@ -5,6 +5,7 @@ import axios from "axios";
 import path from "path";
 
 import { getOptions } from "../main.js";
+import logger from "../../shared/logger.js";
 
 let configPath = path.join(app.getPath("userData"), "config.json");
 
@@ -53,14 +54,14 @@ export const requestAccessToken = async () => {
       const result = await saveAccessToken(accessToken, expiringDate);
 
       if (result.success !== true) {
-        console.log(result);
+        logger.info(JSON.stringify(result));
         return result;
       }
     } else {
       return { success: false };
     }
   } catch (err) {
-    console.log(err);
+    logger.info(err);
     return { success: false };
   }
 };
@@ -110,7 +111,7 @@ export const saveAccessToken = async (accessToken, expiringDate) => {
 
     return { success: true };
   } catch (err) {
-    console.error(err);
+    logger.error(err);
     return { success: false };
   }
 };
@@ -129,7 +130,7 @@ export const getAccessToken = async () => {
     const expiringDate = accessInfo?.["expiring-date"];
 
     if (!accessToken) {
-      console.log("Access token not available. Requesting new...");
+      logger.info("Access token not available. Requesting new...");
 
       const status = await requestAccessToken();
       if (status.success) {
@@ -144,7 +145,7 @@ export const getAccessToken = async () => {
     }
 
     if (new Date(expiringDate) < new Date()) {
-      console.log("Access token expired. Requesting new...");
+      logger.info("Access token expired. Requesting new...");
 
       const status = await requestAccessToken();
       await wait(2000);
@@ -159,10 +160,10 @@ export const getAccessToken = async () => {
       }
     }
 
-    console.log("Access token available.");
+    logger.info("Access token available.");
     return accessToken;
   } catch (err) {
-    console.error("getAccessToken error:", err);
+    logger.error(`getAccessToken error: ${err}`);
     return null;
   }
 };
@@ -214,7 +215,7 @@ export const getAlbumInfo = async (url) => {
       return { type: "err" };
     }
   } catch (err) {
-    console.log(err);
+    logger.info(err);
     return { type: "err" };
   }
 };
@@ -274,7 +275,7 @@ export const getArtistsTopTracks = async (id) => {
       return { success: true, result: tracks };
     }
   } catch (err) {
-    console.log("[getArtistsTopTracks] error: " + err);
+    logger.info("[getArtistsTopTracks] error: " + err);
     return { success: false, message: String(err) };
   }
 };
@@ -308,7 +309,7 @@ export const getArtistsAlbumCount = async (id) => {
       return response.data["total"];
     }
   } catch (err) {
-    console.log(err);
+    logger.info(err);
     return 0;
   }
 };
@@ -343,7 +344,7 @@ export const getPlaylistTracks = async (id) => {
     while (url !== null) {
       url = `${url}&${fields}`;
 
-      console.log(url);
+      logger.info(url);
 
       const response = await axios.get(url, { headers });
 
@@ -376,7 +377,7 @@ export const getPlaylistTracks = async (id) => {
 
     return { success: true, result: tracks };
   } catch (err) {
-    console.error("[getPlaylistTracks] error: " + err);
+    logger.error("[getPlaylistTracks] error: " + err);
     return { success: false, message: String(err) };
   }
 };
@@ -402,7 +403,7 @@ export const getAlbumTracks = async (id) => {
     let tracks = [];
 
     while (url !== null) {
-      console.log(url);
+      logger.info(url);
 
       const response = await axios.get(url, { headers });
 
@@ -433,7 +434,7 @@ export const getAlbumTracks = async (id) => {
 
     return { success: true, result: tracks };
   } catch (err) {
-    console.error("[getAlbumTracks] error: " + err);
+    logger.error("[getAlbumTracks] error: " + err);
     return { success: false, message: String(err) };
   }
 };
@@ -470,7 +471,7 @@ export const getSpotifyInfo = async (url) => {
       if (response.status === 200) {
         let track_artists = "";
 
-        console.log(response.data["album"]["artists"]);
+        logger.info(JSON.stringify(response.data["album"]["artists"]));
 
         for (const artist of response.data["album"]["artists"]) {
           track_artists += artist["name"] + ", ";
@@ -491,7 +492,12 @@ export const getSpotifyInfo = async (url) => {
           name: response.data["album"]["name"] || "No name",
           artist: track_artists,
           album: albumInfo.name,
-          duration: response.data["duration_ms"] / 60000,
+          duration:
+            Math.floor(response.data["duration_ms"] / 1000 / 60) +
+            ":" +
+            (Math.floor(response.data["duration_ms"] / 1000) % 60)
+              .toString()
+              .padStart(2, "0"),
           releaseDate:
             response.data["album"]["release_date"] || "No release date",
         };

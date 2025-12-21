@@ -5,22 +5,42 @@
   "main": "./src/main/main.js",
   "scripts": {
     "start": "electron .",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "electron-builder"
   },
   "author": "vortique",
   "license": "MIT",
   "build": {
+    "appId": "com.vortique.smd-gui",
+    "productName": "SMD GUI",
+    "asarUnpack": [
+      "node_modules/ffmpeg-static-electron/**/*"
+    ],
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "src/**/*"
+    ],
     "extraResources": [
       {
         "from": "binaries/",
         "to": "binaries",
         "filter": "**/*"
       }
-    ]
+    ],
+    "win": {
+      "target": "nsis"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true
+    }
   },
   "type": "module",
   "devDependencies": {
-    "electron": "^39.1.1"
+    "electron": "^39.1.1",
+    "electron-builder": "^26.0.12"
   },
   "dependencies": {
     "axios": "^1.13.2",

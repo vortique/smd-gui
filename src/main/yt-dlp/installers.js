@@ -4,6 +4,7 @@ import { app } from "electron";
 import { execYtDlpBinary } from "./yt-dlp-binary-executors.js";
 import { isMismatchedSongName } from "../utils/query-filter.js";
 import { convertVideoToM4A } from "../utils/convert-video-to-audio.js";
+import logger from "../../shared/logger.js";
 
 /**
  * Updates yt-dlp binary.
@@ -14,15 +15,15 @@ export const updateYtDlp = async () => {
     const result = await execYtDlpBinary(["-U"]);
 
     if (result.success) {
-      console.log(result);
+      logger.info(JSON.stringify(result));
 
       return { success: true };
     }
 
-    console.log(result.stderr);
+    logger.info(result.stderr);
     return { success: false };
   } catch (err) {
-    console.log(err);
+    logger.info(err);
     return { success: false };
   }
 };
@@ -62,20 +63,18 @@ const searchSong = async (songName, searchCount = 3) => {
 
     return { success: false, message: "No video found." };
   } catch (err) {
-    console.error(`Search song error: ${err}`);
+    logger.error(`Search song error: ${err}`);
     return { success: false, message: "Error while searching video." };
   }
 };
 
 export const downloadSong = async (songName, outputPath, searchCount = 3) => {
   try {
-    console.log(
-      `[downloadSong] songName type: ${typeof songName}, value:`,
-      songName
+    logger.info(
+      `[downloadSong] songName type: ${typeof songName}, value: ${songName}`
     );
-    console.log(
-      `[downloadSong] outputPath type: ${typeof outputPath}, value:`,
-      outputPath
+    logger.info(
+      `[downloadSong] outputPath type: ${typeof outputPath}, value: ${outputPath}`
     );
 
     // Ensure songName is a string
@@ -92,10 +91,10 @@ export const downloadSong = async (songName, outputPath, searchCount = 3) => {
 
     const searchResult = await searchSong(songName, searchCount);
 
-    console.log(searchResult);
+    logger.info(JSON.stringify(searchResult));
 
     if (searchResult.success === false) {
-      console.error(searchResult.message);
+      logger.error(searchResult.message);
       return { success: false, message: searchResult.message };
     }
 
@@ -113,7 +112,7 @@ export const downloadSong = async (songName, outputPath, searchCount = 3) => {
     ]);
 
     if (downloadResult.success === false) {
-      console.error(downloadResult.stderr);
+      logger.error(downloadResult.stderr);
       return { success: false, message: downloadResult.stderr };
     }
 
@@ -141,14 +140,14 @@ export const downloadSong = async (songName, outputPath, searchCount = 3) => {
     }
 
     if (convertingResult.success === true) {
-      console.log("Downloading complete.");
+      logger.info("Downloading complete.");
       return { success: true, path: outputFilePath };
     } else {
-      console.error(convertingResult.message);
+      logger.error(convertingResult.message);
       return { success: false, message: convertingResult.message };
     }
   } catch (err) {
-    console.error(`Download song error: ${err}`);
+    logger.error(`Download song error: ${err}`);
     return { success: false, message: String(err) };
   }
 };

@@ -8,7 +8,10 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "electron-builder"
   },
-  "author": "vortique",
+  "author": {
+    "name": "vortique",
+    "email": "babalarvarmi@proton.me"
+  },
   "license": "MIT",
   "build": {
     "appId": "com.vortique.smd-gui",
